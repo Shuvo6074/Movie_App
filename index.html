@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Movie App</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
+
+.header{display:flex;align-items:center;padding:12px 15px;position:fixed;top:0;width:100%;z-index:100;background:transparent;transition:background 0.3s}
+.header.scrolled{background:rgba(0,0,0,0.95)}
+.menu-btn{font-size:24px;cursor:pointer;margin-right:12px;color:#fff}
+.logo{font-size:20px;font-weight:bold;color:#fff;letter-spacing:1px}
+.search{margin-left:auto;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);padding:8px 15px;border-radius:25px;color:#fff;width:140px;font-size:13px;backdrop-filter:blur(10px)}
+.search::placeholder{color:rgba(255,255,255,0.6)}
+
+.popup-ad{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:999;display:flex;align-items:center;justify-content:center}
+.popup-box{background:#1a1a1a;width:88%;border-radius:16px;overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.8)}
+.popup-close{position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.6);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;z-index:1}
+.popup-inner{background:linear-gradient(135deg,#1a1a2e,#e50914);height:180px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}
+.popup-inner h2{font-size:22px;color:#fff}
+.popup-inner p{font-size:13px;color:rgba(255,255,255,0.8)}
+.popup-text{padding:15px;text-align:center;font-size:13px;color:#888}
+
+.fullscreen-ad{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:9999;display:none;flex-direction:column}
+.fullscreen-ad.show{display:flex}
+.ad-top{padding:15px;display:flex;justify-content:flex-end;align-items:center;gap:10px}
+.ad-countdown{color:#aaa;font-size:13px}
+.ad-skip-btn{background:#444;border:none;color:#fff;padding:8px 16px;border-radius:5px;cursor:pointer;font-size:13px;display:none}
+.ad-body{flex:1;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a2e,#16213e);text-align:center;padding:20px}
+
+.overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:499;display:none}
+.overlay.show{display:block}
+.sidebar{position:fixed;top:0;left:-290px;width:290px;height:100%;background:#141414;z-index:500;transition:left 0.3s;overflow-y:auto}
+.sidebar.open{left:0}
+.sidebar-top{padding:55px 20px 20px;background:linear-gradient(135deg,#e50914,#333);margin-bottom:10px}
+.sidebar-top h2{font-size:20px;font-weight:bold}
+.sidebar-top p{font-size:12px;color:rgba(255,255,255,0.7);margin-top:3px}
+.s-item{display:flex;align-items:center;padding:14px 20px;cursor:pointer;border-bottom:1px solid #222;font-size:14px;gap:12px;transition:background 0.2s}
+.s-item:hover{background:#222}
+.s-item svg{opacity:0.8}
+
+.banner{width:100%;height:260px;overflow:hidden;position:relative}
+.b-slides{display:flex;transition:transform 0.5s ease}
+.b-slide{min-width:100%;height:260px;position:relative}
+.b-slide img{width:100%;height:100%;object-fit:cover}
+.b-grad{position:absolute;bottom:0;left:0;width:100%;height:140px;background:linear-gradient(transparent,#0f0f0f)}
+.b-info{position:absolute;bottom:18px;left:15px;right:15px}
+.b-title{font-size:17px;font-weight:bold;text-shadow:0 2px 8px rgba(0,0,0,0.8)}
+.b-dots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:5px}
+.dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.35);transition:all 0.3s}
+.dot.on{background:#fff;width:16px;border-radius:3px}
+
+.cat-bar{display:flex;overflow-x:auto;padding:10px 15px;gap:18px;background:transparent;border-bottom:1px solid #222}
+.cat-bar::-webkit-scrollbar{display:none}
+.cat-btn{background:none;border:none;color:rgba(255,255,255,0.5);font-size:13px;cursor:pointer;white-space:nowrap;padding:5px 0;font-weight:400;position:relative;transition:all 0.2s}
+.cat-btn.on{color:#fff;font-weight:700}
+.cat-btn.on::after{content:'';position:absolute;bottom:-3px;left:0;width:100%;height:2px;background:#fff;border-radius:2px}
+
+.section{padding:5px 0 10px}
+.sec-head{display:flex;justify-content:space-between;align-items:center;padding:10px 15px 8px}
+.sec-title{font-size:15px;font-weight:bold}
+.sec-all{font-size:12px;color:#888;cursor:pointer}
+
+.h-scroll{display:flex;overflow-x:auto;padding:0 15px;gap:10px}
+.h-scroll::-webkit-scrollbar{display:none}
+.m-card{min-width:105px;cursor:pointer;flex-shrink:0}
+.m-thumb{width:105px;height:155px;border-radius:8px;object-fit:cover;background:#252525;display:block}
+.m-title{font-size:11px;margin-top:5px;text-align:center;color:#bbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:105px}
+
+.h-scroll-wide{display:flex;overflow-x:auto;padding:0 15px;gap:10px}
+.h-scroll-wide::-webkit-scrollbar{display:none}
+.w-card{min-width:165px;cursor:pointer;flex-shrink:0}
+.w-thumb{width:165px;height:95px;border-radius:8px;object-fit:cover;background:#252525;display:block}
+.w-title{font-size:11px;margin-top:5px;color:#bbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:165px}
+
+.ad-banner{margin:8px 15px;padding:14px;background:#1a1a1a;border-radius:10px;text-align:center;color:#666;font-size:12px;border:1px dashed #2a2a2a}
+
+.bottom-nav{position:fixed;bottom:0;width:100%;background:#141414;display:flex;justify-content:space-around;padding:8px 0 12px;z-index:100;border-top:1px solid #222}
+.n-item{display:flex;flex-direction:column;align-items:center;cursor:pointer;font-size:10px;color:#555;gap:4px;padding:4px 20px;transition:color 0.2s}
+.n-item.on{color:#fff}
+.n-item svg{width:22px;height:22px}
+
+.page{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0f0f0f;z-index:300;overflow-y:auto}
+.page.show{display:block}
+.p-head{display:flex;align-items:center;padding:12px 15px;background:#141414;gap:12px;position:sticky;top:0;z-index:10}
+.back{cursor:pointer;display:flex;align-items:center}
+.p-head-title{font-size:15px;font-weight:bold}
+
+.vid-wrap{width:100%;aspect-ratio:16/9;background:#000}
+.vid-wrap iframe{width:100%;height:100%;border:none}
+
+.pl-info{padding:15px}
+.pl-title{font-size:17px;font-weight:bold;margin-bottom:4px}
+.pl-meta{color:#888;font-size:13px;margin-bottom:15px}
+.action-row{display:flex;gap:10px;margin-bottom:15px}
+.dl-btn{background:#e50914;border:none;color:#fff;padding:11px 22px;border-radius:8px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:bold}
+.sh-btn{background:#2a2a2a;border:none;color:#fff;padding:11px 22px;border-radius:8px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px}
+
+.rel-wrap{padding:0 15px 80px}
+.rel-title{font-size:15px;font-weight:bold;margin-bottom:10px}
+.rel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.r-card{cursor:pointer}
+.r-thumb{width:100%;aspect-ratio:2/3;border-radius:7px;object-fit:cover;background:#252525}
+.r-title{font-size:10px;margin-top:3px;text-align:center;color:#aaa}
+
+.main{padding-bottom:75px}
+.loading{text-align:center;padding:30px;color:#555;font-size:13px}
+</style>
+</head>
+<body>
+
+<!-- Popup Ad -->
+<div class="popup-ad" id="popupAd">
+  <div class="popup-box">
+    <button class="popup-close" onclick="closePopup()">✕</button>
+    <div class="popup-inner">
+      <h2>Movie App</h2>
+      <p>Watch Free Movies & Shows</p>
+    </div>
+    <div class="popup-text">Tap anywhere to continue watching for free!</div>
+  </div>
+</div>
+
+<!-- Fullscreen Ad -->
+<div class="fullscreen-ad" id="fsAd">
+  <div class="ad-top">
+    <span class="ad-countdown" id="adCount">5s</span>
+    <button class="ad-skip-btn" id="skipBtn" onclick="closeAd()">Skip ✕</button>
+  </div>
+  <div class="ad-body">
+    <div>
+      <div style="font-size:50px;margin-bottom:15px">📢</div>
+      <div style="font-size:18px;font-weight:bold;margin-bottom:8px">Advertisement</div>
+      <div style="color:#888;font-size:14px">Your ad here</div>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-top">
+    <h2>movie App</h2>
+    <p>Watch Free Movies & Shows</p>
+  </div>
+  <div class="s-item" onclick="filterType('movie');closeSidebar()">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>
+    Movies
+  </div>
+  <div class="s-item" onclick="filterType('cartoon');closeSidebar()">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM8 15c0-1.66 1.34-3 3-3 .35 0 .69.07 1 .18V6h5v2h-3v7.03c-.02 1.64-1.35 2.97-3 2.97-1.66 0-3-1.34-3-3z"/></svg>
+    Cartoons
+  </div>
+  <div class="s-item" onclick="filterType('bangla_course');closeSidebar()">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1z"/></svg>
+    Bangla Course
+  </div>
+  <div class="s-item" onclick="filterType('english_course');closeSidebar()">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2s.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2s.07-1.35.16-2h4.68c.09.65.16 1.32.16 2s-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2s-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/></svg>
+    English Course
+  </div>
+  <div class="s-item" onclick="showPage('historyPage');closeSidebar()">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+    History
+  </div>
+  <div class="s-item" onclick="showPage('downloadPage');closeSidebar()">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+    Downloads
+  </div>
+  <div class="s-item" style="margin-top:10px;border-top:1px solid #333" onclick="showLogin()">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+    Sign In (Optional)
+  </div>
+</div>
+
+<!-- Header -->
+<div class="header" id="header">
+  <div class="menu-btn" onclick="openSidebar()">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+  </div>
+  <div class="logo">Movie App</div>
+  <input class="search" placeholder="Search..." oninput="searchMovies(this.value)">
+</div>
+
+<!-- Main -->
+<div class="main" id="mainContent">
+  <div class="banner" id="bannerWrap">
+    <div class="b-slides" id="bSlides"></div>
+    <div class="b-grad"></div>
+    <div class="b-info"><div class="b-title" id="bTitle"></div></div>
+    <div class="b-dots" id="bDots"></div>
+  </div>
+
+  <div class="cat-bar" id="catBar">
+    <button class="cat-btn on" onclick="filterCat(this,'All')">All</button>
+    <button class="cat-btn" onclick="filterCat(this,'Trending')">Trending</button>
+    <button class="cat-btn" onclick="filterCat(this,'Hollywood')">Hollywood</button>
+    <button class="cat-btn" onclick="filterCat(this,'Bangla')">Bangla</button>
+    <button class="cat-btn" onclick="filterCat(this,'Hindi')">Hindi</button>
+    <button class="cat-btn" onclick="filterCat(this,'Anime')">Anime</button>
+    <button class="cat-btn" onclick="filterCat(this,'Asian')">Asian</button>
+    <button class="cat-btn" onclick="filterCat(this,'South Indian')">South Indian</button>
+    <button class="cat-btn" onclick="filterType('bangla_course')">Bangla Course</button>
+    <button class="cat-btn" onclick="filterType('english_course')">English Course</button>
+  </div>
+
+  <div id="contentArea"><div class="loading">Loading...</div></div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <div class="n-item on" id="n-home" onclick="goHome()">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    <span>Home</span>
+  </div>
+  <div class="n-item" id="n-history" onclick="showPage('historyPage')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+    <span>History</span>
+  </div>
+  <div class="n-item" id="n-download" onclick="showPage('downloadPage')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+    <span>Downloads</span>
+  </div>
+</div>
+
+<!-- Player Page -->
+<div class="page" id="playerPage">
+  <div class="p-head">
+    <div class="back" onclick="closePage('playerPage')">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </div>
+    <div class="p-head-title" id="pHeadTitle"></div>
+  </div>
+  <div class="vid-wrap">
+    <iframe id="vFrame" allowfullscreen allow="autoplay"></iframe>
+  </div>
+  <div class="pl-info">
+    <div class="pl-title" id="plTitle"></div>
+    <div class="pl-meta" id="plMeta"></div>
+    <div class="action-row">
+      <button class="dl-btn" onclick="startDownload()">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        Download
+      </button>
+      <button class="sh-btn" onclick="shareMovie()">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+        Share
+      </button>
+    </div>
+  </div>
+  <div class="ad-banner">📢 Advertisement</div>
+  <div class="rel-wrap">
+    <div class="rel-title">Related</div>
+    <div class="rel-grid" id="relGrid"></div>
+  </div>
+</div>
+
+<!-- History Page -->
+<div class="page" id="historyPage">
+  <div class="p-head">
+    <div class="back" onclick="closePage('historyPage')">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </div>
+    <div class="p-head-title">Watch History</div>
+  </div>
+  <div class="rel-grid" id="histGrid" style="padding:15px;padding-bottom:80px"></div>
+</div>
+
+<!-- Download Page -->
+<div class="page" id="downloadPage">
+  <div class="p-head">
+    <div class="back" onclick="closePage('downloadPage')">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </div>
+    <div class="p-head-title">Downloads</div>
+  </div>
+  <div id="dlList" style="padding:30px;text-align:center;color:#555">No downloads yet</div>
+</div>
+
+<script>
+const SHEET_ID='1UeXeBdxtOdZmU2_BLYqP_ar3_zMCGuH5zNUDveEK9AI';
+const API=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+let allData=[],curBanner=0,bTimer,hist=JSON.parse(localStorage.getItem('ch')||'[]');
+
+function poster(u){
+  if(!u)return'';
+  const m=u.match(/id=([^&]+)/)||u.match(/\/d\/([^/]+)/);
+  if(m)return`https://drive.google.com/thumbnail?id=${m[1]}&sz=w300`;
+  return u;
+}
+
+async function loadData(){
+  try{
+    const r=await fetch(API);
+    const t=await r.text();
+    const j=JSON.parse(t.substr(47).slice(0,-2));
+    allData=j.table.rows.map(r=>({
+      title:r.c[0]?.v||'',
+      category:r.c[1]?.v||'',
+      poster:r.c[2]?.v||'',
+      imdb:r.c[3]?.v||'',
+      video:r.c[4]?.v||'',
+      year:r.c[5]?.v||'',
+      type:r.c[6]?.v||'movie'
+    }));
+    renderHome(allData);
+    setBanner(allData.filter(d=>d.type==='movie').slice(0,5));
+  }catch(e){
+    document.getElementById('contentArea').innerHTML='<div class="loading">Error loading. Check internet.</div>';
+  }
+}
+
+function setBanner(items){
+  if(!items.length)return;
+  const s=document.getElementById('bSlides');
+  const d=document.getElementById('bDots');
+  s.innerHTML=items.map(m=>`
+    <div class="b-slide" onclick="openPlayer(${esc(m)})">
+      <img src="${poster(m.poster)}" onerror="this.style.background='linear-gradient(135deg,#e50914,#333)'" alt="${m.title}">
+    </div>`).join('');
+  d.innerHTML=items.map((_,i)=>`<div class="dot ${i===0?'on':''}"></div>`).join('');
+  document.getElementById('bTitle').textContent=items[0].title;
+  clearInterval(bTimer);
+  bTimer=setInterval(()=>{
+    curBanner=(curBanner+1)%items.length;
+    s.style.transform=`translateX(-${curBanner*100}%)`;
+    document.getElementById('bTitle').textContent=items[curBanner].title;
+    document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i===curBanner));
+  },4000);
+}
+
+function renderHome(data){
+  const movies=data.filter(d=>d.type==='movie');
+  const cartoons=data.filter(d=>d.type==='cartoon');
+  const bangla=data.filter(d=>d.type==='bangla_course');
+  const english=data.filter(d=>d.type==='english_course');
+  const cats={};
+  movies.forEach(m=>{if(!cats[m.category])cats[m.category]=[];cats[m.category].push(m);});
+  let html='',row=0;
+  Object.keys(cats).forEach(cat=>{
+    if(!cats[cat].length)return;
+    html+=`<div class="section">
+      <div class="sec-head"><div class="sec-title">${cat}</div><div class="sec-all">All ›</div></div>
+      <div class="h-scroll">${cats[cat].map(m=>`
+        <div class="m-card" onclick="openPlayer(${esc(m)})">
+          <img class="m-thumb" src="${poster(m.poster)}" onerror="this.style.background='#333'" alt="${m.title}">
+          <div class="m-title">${m.title}</div>
+        </div>`).join('')}
+      </div></div>`;
+    row++;
+    if(row%3===0)html+=`<div class="ad-banner">📢 Advertisement</div>`;
+  });
+  if(cartoons.length)html+=`<div class="section">
+    <div class="sec-head"><div class="sec-title">📺 Cartoons</div></div>
+    <div class="h-scroll-wide">${cartoons.map(m=>`
+      <div class="w-card" onclick="openPlayer(${esc(m)})">
+        <img class="w-thumb" src="${poster(m.poster)}" onerror="this.style.background='#333'" alt="${m.title}">
+        <div class="w-title">${m.title}</div>
+      </div>`).join('')}
+    </div></div>`;
+  if(bangla.length)html+=`<div class="section">
+    <div class="sec-head"><div class="sec-title">📚 Bangla Course</div></div>
+    <div class="h-scroll-wide">${bangla.map(m=>`
+      <div class="w-card" onclick="openPlayer(${esc(m)})">
+        <img class="w-thumb" src="${poster(m.poster)}" onerror="this.style.background='#333'" alt="${m.title}">
+        <div class="w-title">${m.title}</div>
+      </div>`).join('')}
+    </div></div>`;
+  if(english.length)html+=`<div class="section">
+    <div class="sec-head"><div class="sec-title">🌐 English Course</div></div>
+    <div class="h-scroll-wide">${english.map(m=>`
+      <div class="w-card" onclick="openPlayer(${esc(m)})">
+        <img class="w-thumb" src="${poster(m.poster)}" onerror="this.style.background='#333'" alt="${m.title}">
+        <div class="w-title">${m.title}</div>
+      </div>`).join('')}
+    </div></div>`;
+  document.getElementById('contentArea').innerHTML=html||'<div class="loading">No content</div>';
+}
+
+function esc(m){return JSON.stringify(m).replace(/"/g,'&quot;')}
+
+function openPlayer(m){
+  if(typeof m==='string')m=JSON.parse(m);
+  hist=hist.filter(h=>h.title!==m.title);
+  hist.unshift(m);
+  if(hist.length>50)hist.pop();
+  localStorage.setItem('ch',JSON.stringify(hist));
+  const f=document.getElementById('vFrame');
+  f.src=m.imdb?`https://vidsrc.to/embed/movie/${m.imdb}`:m.video;
+  document.getElementById('plTitle').textContent=m.title;
+  document.getElementById('pHeadTitle').textContent=m.title;
+  document.getElementById('plMeta').textContent=`${m.category} • ${m.year}`;
+  const rel=allData.filter(x=>x.category===m.category&&x.title!==m.title).slice(0,6);
+  document.getElementById('relGrid').innerHTML=rel.map(r=>`
+    <div class="r-card" onclick="openPlayer(${esc(r)})">
+      <img class="r-thumb" src="${poster(r.poster)}" onerror="this.style.background='#333'" alt="${r.title}">
+      <div class="r-title">${r.title}</div>
+    </div>`).join('');
+  showPage('playerPage');
+}
+
+function startDownload(){
+  showAd(()=>alert('Download: '+document.getElementById('plTitle').textContent));
+}
+function shareMovie(){
+  const t=document.getElementById('plTitle').textContent;
+  if(navigator.share)navigator.share({title:t,text:'Watch '+t+' on CineApp!'});
+  else alert('Share: '+t);
+}
+
+function filterCat(btn,cat){
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  const f=cat==='All'?allData:allData.filter(d=>d.category===cat);
+  renderHome(f);
+  if(cat==='All')setBanner(allData.filter(d=>d.type==='movie').slice(0,5));
+}
+function filterType(type){
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('on'));
+  renderHome(allData.filter(d=>d.type===type));
+}
+function searchMovies(q){
+  if(!q)renderHome(allData);
+  else renderHome(allData.filter(d=>d.title.toLowerCase().includes(q.toLowerCase())));
+}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+  document.getElementById(id).classList.add('show');
+  document.querySelectorAll('.n-item').forEach(n=>n.classList.remove('on'));
+  if(id==='historyPage'){
+    document.getElementById('n-history').classList.add('on');
+    document.getElementById('histGrid').innerHTML=hist.map(m=>`
+      <div class="r-card" onclick="openPlayer(${esc(m)})">
+        <img class="r-thumb" src="${poster(m.poster)}" onerror="this.style.background='#333'" alt="${m.title}">
+        <div class="r-title">${m.title}</div>
+      </div>`).join('')||'<div style="color:#555;text-align:center;padding:30px">No history</div>';
+  }
+  if(id==='downloadPage')document.getElementById('n-download').classList.add('on');
+}
+
+function closePage(id){
+  document.getElementById(id).classList.remove('show');
+  if(id==='playerPage')document.getElementById('vFrame').src='';
+}
+function goHome(){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+  document.querySelectorAll('.n-item').forEach(n=>n.classList.remove('on'));
+  document.getElementById('n-home').classList.add('on');
+}
+
+function openSidebar(){
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+function closePopup(){document.getElementById('popupAd').style.display='none';}
+function showLogin(){alert('Google Sign In coming soon!');}
+
+function showAd(cb){
+  const ad=document.getElementById('fsAd');
+  ad.classList.add('show');
+  let c=5;
+  const cn=document.getElementById('adCount');
+  const sk=document.getElementById('skipBtn');
+  sk.style.display='none';
+  cn.textContent=c+'s';
+  window._adCb=cb;
+  const t=setInterval(()=>{
+    c--;
+    if(c>0)cn.textContent=c+'s';
+    else{clearInterval(t);cn.textContent='';sk.style.display='inline-block';}
+  },1000);
+}
+function closeAd(){
+  document.getElementById('fsAd').classList.remove('show');
+  if(window._adCb){window._adCb();window._adCb=null;}
+}
+
+window.addEventListener('scroll',()=>{
+  document.getElementById('header').classList.toggle('scrolled',window.scrollY>50);
+});
+
+loadData();
+</script>
+</body>
+</html>
