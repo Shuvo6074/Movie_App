@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Movie App</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0f0f0f">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
+#splash{position:fixed;top:0;left:0;width:100%;height:100%;background:#0f0f0f;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px;transition:opacity 0.5s}
+.s-logo{font-size:36px;font-weight:900;color:#e50914;letter-spacing:2px}
+.s-sub{font-size:13px;color:#555}
+.s-bar{width:200px;height:3px;background:#222;border-radius:2px;margin-top:8px;overflow:hidden}
+.s-fill{height:100%;background:#e50914;animation:sfill 5s linear forwards}
+@keyframes sfill{0%{width:0}100%{width:100%}}
+.splash-ad{margin-top:18px;width:280px;height:60px;background:#111;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#333;font-size:11px;border:1px dashed #222}
+
+.header{display:flex;align-items:center;padding:12px 15px;position:fixed;top:0;width:100%;z-index:100;background:transparent;transition:background 0.3s}
+.header.scrolled{background:rgba(0,0,0,0.95)}
+.menu-btn{cursor:pointer;margin-right:12px;color:#fff;display:flex;flex-shrink:0}
+.logo-text{font-size:18px;font-weight:bold;color:#fff;letter-spacing:1px;flex-shrink:0}
+.search-wrap{margin-left:auto;display:flex;align-items:center}
+.search-box{display:flex;align-items:center;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:25px;overflow:hidden;transition:all 0.3s;width:36px}
+.search-box.open{width:160px;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.4)}
+.search-input{background:none;border:none;color:#fff;font-size:13px;outline:none;width:0;padding:0;transition:all 0.3s}
+.search-box.open .search-input{width:120px;padding:8px 12px}
+.search-icon-btn{background:none;border:none;color:#fff;cursor:pointer;padding:8px 10px;display:flex;flex-shrink:0}
+
+.popup-ad{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);z-index:999;display:flex;align-items:center;justify-content:center}
+.popup-box{background:#1a1a1a;width:88%;border-radius:16px;overflow:hidden;position:relative}
+.popup-close{position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.6);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:16px;cursor:pointer;z-index:1}
+.popup-inner{background:linear-gradient(135deg,#1a1a2e,#e50914);height:180px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}
+.popup-inner h2{font-size:22px;color:#fff;font-weight:bold}
+.popup-inner p{font-size:13px;color:rgba(255,255,255,0.8)}
+.popup-text{padding:15px;text-align:center;font-size:13px;color:#888}
+
+.mid-ad{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:8000;display:none;flex-direction:column}
+.mid-ad.show{display:flex}
+.mid-ad-top{padding:15px;display:flex;justify-content:flex-end;align-items:center;gap:10px;background:#111}
+.mid-ad-count{color:#aaa;font-size:14px;font-weight:bold}
+.mid-ad-skip{background:#e50914;border:none;color:#fff;padding:8px 18px;border-radius:6px;cursor:pointer;font-size:13px;display:none}
+/* ===== ১৫ মিনিট Ad কোড এখানে ===== */
+.mid-ad-body{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px;padding:20px;background:#0a0a0a}
+
+.fullscreen-ad{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:9999;display:none;flex-direction:column}
+.fullscreen-ad.show{display:flex}
+.ad-top-bar{padding:15px;display:flex;justify-content:flex-end;align-items:center;gap:10px}
+.ad-countdown{color:#aaa;font-size:13px}
+.ad-skip-btn{background:#444;border:none;color:#fff;padding:8px 16px;border-radius:5px;cursor:pointer;font-size:13px;display:none}
+/* ===== Download Ad কোড এখানে ===== */
+.ad-body{flex:1;display:flex;align-items:center;justify-content:center;background:#0a0a0a;text-align:center;padding:20px}
+
+.overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:499;display:none}
+.overlay.show{display:block}
+.sidebar{position:fixed;top:0;left:-290px;width:290px;height:100%;background:#141414;z-index:500;transition:left 0.3s;overflow-y:auto}
+.sidebar.open{left:0}
+.sidebar-top{padding:55px 20px 20px;background:linear-gradient(135deg,#e50914,#333);margin-bottom:10px}
+.sidebar-top h2{font-size:18px;font-weight:bold}
+.s-item{display:flex;align-items:center;padding:14px 20px;cursor:pointer;border-bottom:1px solid #222;font-size:14px;gap:12px;transition:background 0.2s}
+.s-item:hover{background:#222}
+
+.banner{width:100%;height:280px;overflow:hidden;position:relative;margin-top:0}
+.b-slides{display:flex;transition:transform 0.5s ease}
+.b-slide{min-width:100%;height:280px;position:relative;cursor:pointer}
+.b-slide img{width:100%;height:100%;object-fit:cover}
+.b-grad{position:absolute;bottom:0;left:0;width:100%;height:160px;background:linear-gradient(transparent,#0f0f0f)}
+.b-grad-top{position:absolute;top:0;left:0;width:100%;height:100px;background:linear-gradient(rgba(0,0,0,0.4),transparent)}
+.b-info{position:absolute;bottom:18px;left:15px;right:15px}
+.b-title{font-size:17px;font-weight:bold;text-shadow:0 2px 8px rgba(0,0,0,0.8)}
+.b-meta{font-size:12px;color:rgba(255,255,255,0.7);margin-top:3px}
+.b-dots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:5px}
+.dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.35);transition:all 0.3s}
+.dot.on{background:#fff;width:16px;border-radius:3px}
+
+.cat-bar{display:flex;overflow-x:auto;padding:10px 15px;gap:18px;background:transparent;border-bottom:1px solid #222}
+.cat-bar::-webkit-scrollbar{display:none}
+.cat-btn{background:none;border:none;color:rgba(255,255,255,0.5);font-size:13px;cursor:pointer;white-space:nowrap;padding:5px 0;font-weight:400;position:relative;transition:all 0.2s}
+.cat-btn.on{color:#fff;font-weight:700}
+.cat-btn.on::after{content:'';position:absolute;bottom:-3px;left:0;width:100%;height:2px;background:#fff;border-radius:2px}
+
+.genre-bar{display:flex;overflow-x:auto;padding:8px 15px;gap:10px;border-bottom:1px solid #1a1a1a}
+.genre-bar::-webkit-scrollbar{display:none}
+.genre-btn{background:#1e1e1e;border:1px solid #333;color:rgba(255,255,255,0.6);font-size:12px;cursor:pointer;white-space:nowrap;padding:5px 12px;border-radius:20px;transition:all 0.2s}
+.genre-btn.on{color:#fff;font-weight:700;background:#2a2a2a;border-color:#555}
+
+.section{padding:5px 0 10px}
+.sec-head{display:flex;justify-content:space-between;align-items:center;padding:10px 15px 8px}
+.sec-title{font-size:15px;font-weight:bold}
+.sec-all{font-size:12px;color:#888;cursor:pointer}
+
+.h-scroll{display:flex;overflow-x:auto;padding:0 15px;gap:10px}
+.h-scroll::-webkit-scrollbar{display:none}
+.m-card{min-width:105px;cursor:pointer;flex-shrink:0;position:relative}
+.m-thumb{width:105px;height:155px;border-radius:8px;object-fit:cover;background:#252525;display:block}
+.m-title{font-size:11px;margin-top:5px;text-align:center;color:#bbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:105px}
+.m-rating{position:absolute;top:5px;right:5px;background:rgba(0,0,0,0.7);color:#ffd700;font-size:9px;padding:2px 5px;border-radius:4px;font-weight:bold}
+
+.h-scroll-wide{display:flex;overflow-x:auto;padding:0 15px;gap:10px}
+.h-scroll-wide::-webkit-scrollbar{display:none}
+.w-card{min-width:165px;cursor:pointer;flex-shrink:0}
+.w-thumb{width:165px;height:93px;border-radius:8px;object-fit:cover;background:#252525;display:block}
+.w-title{font-size:11px;margin-top:5px;color:#bbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:165px}
+
+/* ===== Home Ad — YouTube সাইজ ===== */
+.ad-banner-home{margin:10px 15px;border-radius:10px;overflow:hidden;background:#1a1a1a;border:1px dashed #2a2a2a}
+/* ===== এখানে Home Ad কোড বসাবে ===== */
+.ad-banner-home-inner{width:100%;height:180px;display:flex;align-items:center;justify-content:center;color:#555;font-size:12px;flex-direction:column;gap:5px}
+
+.search-page{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0f0f0f;z-index:200;overflow-y:auto;padding-bottom:80px}
+.search-page.show{display:block}
+.search-page-head{padding:55px 15px 10px;background:#0f0f0f;position:sticky;top:0;z-index:5}
+.search-top{display:flex;align-items:center;gap:10px;background:#1e1e1e;border-radius:12px;padding:10px 15px;border:1px solid #333}
+.search-top input{background:none;border:none;color:#fff;font-size:15px;outline:none;flex:1}
+.search-top input::placeholder{color:#555}
+.search-close{background:none;border:none;color:#aaa;font-size:20px;cursor:pointer}
+.search-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px 15px}
+.sg-card{cursor:pointer;min-width:0;overflow:hidden}
+.sg-thumb{width:100%;aspect-ratio:2/3;border-radius:8px;object-fit:cover;background:#252525;display:block}
+.sg-title{font-size:10px;margin-top:4px;color:#bbb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%}
+.sg-year{font-size:9px;color:#666;margin-top:2px}
+
+/* ===== Search Ad ===== */
+.ad-search{margin:5px 15px 10px;border-radius:10px;overflow:hidden;background:#1a1a1a;border:1px dashed #2a2a2a}
+/* ===== এখানে Search Ad কোড বসাবে ===== */
+.ad-search-inner{width:100%;height:180px;display:flex;align-items:center;justify-content:center;color:#555;font-size:12px;flex-direction:column;gap:5px}
+
+.bottom-nav{position:fixed;bottom:0;width:100%;background:#141414;display:flex;justify-content:space-around;padding:8px 0 12px;z-index:100;border-top:1px solid #222}
+.n-item{display:flex;flex-direction:column;align-items:center;cursor:pointer;font-size:10px;color:#555;gap:4px;padding:4px 20px;transition:color 0.2s}
+.n-item.on{color:#fff}
+.n-item svg{width:22px;height:22px}
+
+.page{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0f0f0f;z-index:300;overflow-y:auto}
+.page.show{display:block}
+.p-head{display:flex;align-items:center;padding:12px 15px;background:#141414;gap:12px;position:sticky;top:0;z-index:10}
+.back{cursor:pointer;display:flex;align-items:center}
+.p-head-title{font-size:15px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.vid-wrap{width:100%;aspect-ratio:16/9;background:#000;position:relative;overflow:hidden}
+.vid-wrap iframe{width:100%;height:100%;border:none}
+.gesture-layer{position:absolute;top:0;left:0;width:100%;height:100%;z-index:5;touch-action:none;display:none}
+.gesture-indicator{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:#fff;padding:8px 16px;border-radius:20px;font-size:13px;display:none;pointer-events:none;z-index:6}
+.gesture-indicator.show{display:block}
+.vol-bar{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:4px;height:100px;background:rgba(255,255,255,0.2);border-radius:2px;display:none;z-index:6}
+.vol-fill{position:absolute;bottom:0;width:100%;background:#fff;border-radius:2px}
+.bri-bar{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:4px;height:100px;background:rgba(255,255,255,0.2);border-radius:2px;display:none;z-index:6}
+.bri-fill{position:absolute;bottom:0;width:100%;background:#ffd700;border-radius:2px}
+
+.pl-info{padding:15px}
+.pl-title{font-size:17px;font-weight:bold;margin-bottom:4px}
+.pl-meta{color:#888;font-size:13px;margin-bottom:15px}
+.pl-rating{color:#ffd700;font-size:13px;margin-bottom:10px}
+.action-row{display:flex;gap:8px;margin-bottom:15px}
+.dl-btn{background:linear-gradient(135deg,#e50914,#b00);border:none;color:#fff;padding:13px 18px;border-radius:12px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:7px;font-weight:700;flex:1.5;justify-content:center;box-shadow:0 4px 15px rgba(229,9,20,0.4);letter-spacing:0.3px}
+.sh-btn{background:linear-gradient(135deg,#2a2a2a,#1a1a1a);border:1px solid #444;color:#fff;padding:13px 14px;border-radius:12px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;flex:1;justify-content:center;font-weight:600}
+.report-btn{background:#1a1a1a;border:1px solid #333;color:#fff;padding:13px 14px;border-radius:12px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px;font-weight:500}
+
+.ep-wrap{padding:0 15px 10px}
+.ep-label{font-size:13px;color:#aaa;margin-bottom:8px}
+.season-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.season-btn{background:#1e1e1e;border:1px solid #333;color:#aaa;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.2s}
+.season-btn.on{background:#e50914;border-color:#e50914;color:#fff}
+.ep-row{display:flex;gap:8px;flex-wrap:wrap}
+.ep-btn{background:#2a2a2a;border:none;color:#fff;width:40px;height:40px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:bold;transition:background 0.2s}
+.ep-btn.on{background:#e50914}
+
+/* ===== Player Ad ===== */
+.player-ad{margin:10px 15px;border-radius:10px;overflow:hidden;background:#1a1a1a;border:1px dashed #2a2a2a}
+/* ===== এখানে Player Ad কোড বসাবে ===== */
+.player-ad-inner{width:100%;height:100px;display:flex;align-items:center;justify-content:center;color:#555;font-size:12px;flex-direction:column;gap:5px}
+
+.rel-wrap{padding:0 15px 80px}
+.rel-title{font-size:15px;font-weight:bold;margin-bottom:10px}
+.rel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.r-card{cursor:pointer;width:100%;overflow:hidden}
+.r-poster{width:100%;padding-top:150%;position:relative;border-radius:7px;overflow:hidden;background:#252525}
+.r-poster img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+.r-thumb{width:100%;aspect-ratio:2/3;border-radius:7px;object-fit:cover;background:#252525;display:block}
+.r-title{font-size:10px;margin-top:4px;text-align:center;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
+.rel-ad-wrap{margin:8px 0;border-radius:8px;background:#1a1a1a;border:1px dashed #2a2a2a;height:80px;display:flex;align-items:center;justify-content:center;color:#555;font-size:12px;grid-column:1/-1}
+
+/* ===== Server Switcher ===== */
+.server-wrap{padding:10px 15px 5px}
+.server-label{font-size:12px;color:#888;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.srv-status{font-size:11px;color:#e50914}
+.server-row{display:flex;gap:8px;flex-wrap:wrap}
+.srv-btn{background:#1e1e1e;border:1px solid #333;color:rgba(255,255,255,0.6);font-size:12px;cursor:pointer;padding:7px 16px;border-radius:8px;transition:all 0.2s;font-weight:500}
+.srv-btn.on{background:#e50914;border-color:#e50914;color:#fff;font-weight:700}
+.srv-btn.trying{border-color:#888;color:#aaa;animation:srvpulse 0.7s infinite alternate}
+@keyframes srvpulse{from{opacity:0.4}to{opacity:1}}
+
+/* Broken Movies Page */
+.broken-list{padding:15px;padding-bottom:80px}
+.broken-item{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;background:#1a1a1a;border-radius:8px;margin-bottom:8px}
+.broken-title{font-size:13px;color:#fff}
+.broken-count{font-size:11px;color:#e50914;background:rgba(229,9,20,0.15);padding:3px 8px;border-radius:10px}
+
+.main{padding-bottom:75px}
+.loading{text-align:center;padding:30px;color:#555;font-size:13px}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="s-logo">🎬 Movie App</div>
+  <div class="s-sub">Free Movies & Shows</div>
+  <div class="s-bar"><div class="s-fill"></div></div>
+  <!-- ===== Splash Ad কোড এখানে ===== -->
+  <div class="splash-ad">📢 Advertisement</div>
+</div>
+
+<div class="popup-ad" id="popupAd" style="display:none">
+  <div class="popup-box">
+    <button class="popup-close" onclick="closePopup()">✕</button>
+    <div class="popup-inner">
+      <h2>🎬 Movie App</h2>
+      <p>Watch Free Movies & Shows</p>
+    </div>
+    <!-- ===== Popup Ad কোড এখানে ===== -->
+    <div class="popup-text">✕ চাপো — ফ্রিতে দেখো!</div>
+  </div>
+</div>
+
+<div class="mid-ad" id="midAd">
+  <div class="mid-ad-top">
+    <span class="mid-ad-count" id="midCount">⏱ 10s</span>
+    <button class="mid-ad-skip" id="midSkip" onclick="closeMidAd()">Skip ✕</button>
+  </div>
+  <!-- ===== ১৫ মিনিট Ad কোড এখানে ===== -->
+  <div class="mid-ad-body">
+    <div style="font-size:50px">📢</div>
+    <div style="font-size:18px;font-weight:bold">Advertisement</div>
+    <div style="color:#666;font-size:13px;margin-top:5px">Your ad here</div>
+  </div>
+</div>
+
+<div class="fullscreen-ad" id="fsAd">
+  <div class="ad-top-bar">
+    <span class="ad-countdown" id="adCount">5s</span>
+    <button class="ad-skip-btn" id="skipBtn" onclick="closeAd()">Skip ✕</button>
+  </div>
+  <!-- ===== Download Ad কোড এখানে ===== -->
+  <div class="ad-body">
+    <div>
+      <div style="font-size:50px;margin-bottom:15px">📢</div>
+      <div style="font-size:18px;font-weight:bold;margin-bottom:8px">Advertisement</div>
+      <div style="color:#666;font-size:14px">Your ad here</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-top"><h2>🎬 Movie App</h2></div>
+  <div class="s-item" onclick="goHome();closeSidebar()">🏠 Home</div>
+  <div class="s-item" onclick="loadTMDB('movie','popular');closeSidebar()">🎬 Popular Movies</div>
+  <div class="s-item" onclick="loadTMDB('movie','top_rated');closeSidebar()">⭐ Top Rated</div>
+  <div class="s-item" onclick="loadTMDB('tv','popular');closeSidebar()">📺 Web Series</div>
+  <div class="s-item" onclick="loadLangGrid('bn','🎬 Kolkata Bengali');closeSidebar()">🎬 Kolkata Bengali</div>
+  <div class="s-item" onclick="filterType('cartoon');closeSidebar()">🎨 Cartoons</div>
+  <div class="s-item" onclick="filterType('bangla_course');closeSidebar()">📚 Bangla Course</div>
+  <div class="s-item" onclick="filterType('english_course');closeSidebar()">🌐 English Course</div>
+  <div class="s-item" onclick="loadAdult();closeSidebar()">🔞 18+ Section</div>
+  <div class="s-item" onclick="loadAdultContent();closeSidebar()">🔞 Adult</div>
+  <div class="s-item" onclick="showPage('historyPage');closeSidebar()">🕐 History</div>
+  <div class="s-item" onclick="showPage('downloadPage');closeSidebar()">⬇️ Downloads</div>
+  <div class="s-item" onclick="showPage('brokenPage');closeSidebar()">🚨 Broken Movies</div>
+</div>
+
+<div class="header" id="header">
+  <div class="menu-btn" onclick="openSidebar()">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+  </div>
+  <div class="logo-text">Movie App</div>
+  <div class="search-wrap">
+    <div class="search-box" id="searchBox">
+      <input class="search-input" id="searchInput" placeholder="Search..." type="text" oninput="liveSearch(this.value)">
+      <button class="search-icon-btn" onclick="toggleSearch()">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="search-page" id="searchPage">
+  <div class="search-page-head">
+    <div class="search-top">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" style="color:#555;flex-shrink:0"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input id="searchPageInput" placeholder="Search movies & series..." type="text" oninput="doSearch(this.value)" autofocus>
+      <button class="search-close" onclick="closeSearch()">✕</button>
+    </div>
+  </div>
+  <div id="searchResults"></div>
+</div>
+
+<div class="main" id="mainContent" style="margin-top:0">
+  <div class="banner" id="bannerWrap">
+    <div class="b-slides" id="bSlides"></div>
+    <div class="b-grad-top"></div>
+    <div class="b-grad"></div>
+    <div class="b-info">
+      <div class="b-title" id="bTitle"></div>
+      <div class="b-meta" id="bMeta"></div>
+    </div>
+    <div class="b-dots" id="bDots"></div>
+  </div>
+
+  <div class="cat-bar">
+    <button class="cat-btn on" onclick="filterCat(this,'All')">All</button>
+    <button class="cat-btn" onclick="loadTMDBGrid('movie','popular','Hollywood');setOn(this)">Popular</button>
+    <button class="cat-btn" onclick="loadTMDBGrid('movie','top_rated','Hollywood');setOn(this)">Top Rated</button>
+    <button class="cat-btn" onclick="loadTMDBGrid('movie','now_playing','Hollywood');setOn(this)">Now Playing</button>
+    <button class="cat-btn" onclick="loadTMDBGrid('tv','popular','Web Series');setOn(this)">Web Series</button>
+    <button class="cat-btn" onclick="filterCat(this,'Hollywood')">Hollywood</button>
+    <button class="cat-btn" onclick="filterCat(this,'Bangla')">Bangla</button>
+    <button class="cat-btn" onclick="loadLangGrid('bn','🎬 Kolkata Bengali');setOn(this)">Kolkata</button>
+    <button class="cat-btn" onclick="loadLangGrid('hi','Bollywood Hindi');setOn(this)">Hindi</button>
+    <button class="cat-btn" onclick="loadLangGrid('ja','Anime');setOn(this)">Anime</button>
+    <button class="cat-btn" onclick="loadIndian();setOn(this)">Indian</button>
+    <button class="cat-btn" onclick="showActorSearch();setOn(this)">🎭 Actor</button>
+    <button class="cat-btn" onclick="loadAdult();setOn(this)">18+</button>
+    <button class="cat-btn" onclick="loadAdultContent();setOn(this)">Adult</button>
+    <button class="cat-btn" onclick="filterType('bangla_course');setOn(this)">Bangla Course</button>
+    <button class="cat-btn" onclick="filterType('english_course');setOn(this)">English Course</button>
+  </div>
+
+  <div class="genre-bar">
+    <button class="genre-btn on" onclick="filterGenre(this,0)">🎬 All</button>
+    <button class="genre-btn" onclick="filterGenre(this,28)">💥 Action</button>
+    <button class="genre-btn" onclick="filterGenre(this,10749)">❤️ Romance</button>
+    <button class="genre-btn" onclick="filterGenre(this,35)">😂 Comedy</button>
+    <button class="genre-btn" onclick="filterGenre(this,53)">😱 Thriller</button>
+    <button class="genre-btn" onclick="filterGenre(this,27)">👻 Horror</button>
+    <button class="genre-btn" onclick="filterGenre(this,18)">🎭 Drama</button>
+    <button class="genre-btn" onclick="filterGenre(this,878)">🚀 Sci-Fi</button>
+    <button class="genre-btn" onclick="filterGenre(this,14)">🧙 Fantasy</button>
+    <button class="genre-btn" onclick="filterGenre(this,12)">🗺️ Adventure</button>
+    <button class="genre-btn" onclick="filterGenre(this,80)">🔫 Crime</button>
+    <button class="genre-btn" onclick="filterGenre(this,9648)">🔍 Mystery</button>
+    <button class="genre-btn" onclick="filterGenre(this,16)">🎨 Animation</button>
+    <button class="genre-btn" onclick="filterGenre(this,10751)">👨‍👩‍👧 Family</button>
+    <button class="genre-btn" onclick="filterGenre(this,99)">📹 Documentary</button>
+  </div>
+
+  <div id="contentArea"><div class="loading">Loading...</div></div>
+</div>
+
+<div class="bottom-nav">
+  <div class="n-item on" id="n-home" onclick="goHome()">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    <span>Home</span>
+  </div>
+  <div class="n-item" id="n-history" onclick="showPage('historyPage')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+    <span>History</span>
+  </div>
+  <div class="n-item" id="n-download" onclick="showPage('downloadPage')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+    <span>Downloads</span>
+  </div>
+</div>
+
+<!-- Player Page -->
+<div class="page" id="playerPage">
+  <div class="p-head">
+    <div class="back" onclick="closePage('playerPage')">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </div>
+    <div class="p-head-title" id="pHeadTitle"></div>
+  </div>
+  <div class="vid-wrap" id="vidWrap">
+    <iframe id="vFrame" allowfullscreen allow="autoplay; fullscreen" style="pointer-events:auto" onload="onFrameLoad()"></iframe>
+    <div class="gesture-layer" id="gestureLayer" style="display:none"></div>
+    <div class="gesture-indicator" id="gestureIndicator"></div>
+    <div class="vol-bar" id="volBar"><div class="vol-fill" id="volFill" style="height:80%"></div></div>
+    <div class="bri-bar" id="briBar"><div class="bri-fill" id="briFill" style="height:100%"></div></div>
+    <div id="gestureToggle" onclick="toggleGestureMode()" style="position:absolute;bottom:2px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;padding:5px 14px;border-radius:12px;font-size:11px;cursor:pointer;z-index:10;border:1px solid rgba(255,255,255,0.2);white-space:nowrap">🖐 Gesture</div>
+  </div>
+  <div class="pl-info">
+    <div class="pl-title" id="plTitle"></div>
+    <div class="pl-rating" id="plRating"></div>
+    <div class="pl-meta" id="plMeta"></div>
+    <div class="action-row">
+      <button class="dl-btn" id="dlBtn" onclick="startDownload()">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        Download
+      </button>
+      <button class="sh-btn" onclick="shareMovie()">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+        Share
+      </button>
+      <button class="report-btn" onclick="reportMovie()">🚨 Report</button>
+    </div>
+  </div>
+  <!-- ===== Server Switcher ===== -->
+  <div class="server-wrap">
+    <div class="server-label">🖥️ Server <span class="srv-status" id="srvStatus"></span></div>
+    <div class="server-row">
+      <button class="srv-btn on" id="srv1" onclick="switchServer(1,this)">Server 1</button>
+      <button class="srv-btn" id="srv2" onclick="switchServer(2,this)">Server 2</button>
+      <button class="srv-btn" id="srv3" onclick="switchServer(3,this)">Server 3</button>
+    </div>
+  </div>
+
+  <div class="ep-wrap" id="epWrap" style="display:none">
+    <div class="ep-label">📺 Season & Episodes</div>
+    <div class="season-row" id="seasonRow"></div>
+    <div class="ep-row" id="epRow"></div>
+  </div>
+  <!-- ===== Player Ad এখানে ===== -->
+  <div class="player-ad"><div class="player-ad-inner">📢 Advertisement</div></div>
+  <div class="rel-wrap">
+    <div class="rel-title">Related</div>
+    <div id="relGrid" class="rel-grid"></div>
+  </div>
+</div>
+
+<!-- History Page -->
+<div class="page" id="historyPage">
+  <div class="p-head">
+    <div class="back" onclick="closePage('historyPage')">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </div>
+    <div class="p-head-title">Watch History</div>
+  </div>
+  <div id="histGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px;padding-bottom:80px"></div>
+</div>
+
+<!-- Download Page -->
+<div class="page" id="downloadPage">
+  <div class="p-head">
+    <div class="back" onclick="closePage('downloadPage')">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </div>
+    <div class="p-head-title">Downloads</div>
+  </div>
+  <div id="dlList" style="padding:30px;text-align:center;color:#555">No downloads yet</div>
+</div>
+
+<!-- Broken Movies Page -->
+<div class="page" id="brokenPage">
+  <div class="p-head">
+    <div class="back" onclick="closePage('brokenPage')">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </div>
+    <div class="p-head-title">🚨 Broken Movies</div>
+  </div>
+  <div class="broken-list" id="brokenList">
+    <div class="loading">No reports yet</div>
+  </div>
+</div>
+
+<script>
+const TMDB_KEY='1f667f0c8113793e25b6c58845de7d79';
+const TMDB='https://api.themoviedb.org/3';
+const IMG='https://image.tmdb.org/t/p/w500';
+const IMG_BIG='https://image.tmdb.org/t/p/w1280';
+const SHEET_ID='1UeXeBdxtOdZmU2_BLYqP_ar3_zMCGuH5zNUDveEK9AI';
+const SHEET_API=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+
+let allSheetData=[],curBanner=0,bTimer,midAdTimer,curMovie=null;
+let hist=JSON.parse(localStorage.getItem('ch')||'[]');
+let brokenMovies=JSON.parse(localStorage.getItem('broken')||'[]');
+let vidsrcIds=new Set();
+const MID_AD_INTERVAL=15*60*1000;
+const MID_AD_DURATION=10;
+
+// ===== SERVER SYSTEM =====
+let curServer=1;
+let curSeason=1,curEpisode=1;
+let frameLoaded=false;
+
+// প্রতিটা server এর URL builder
+function srvUrl(n,type,id,s,e){
+  s=s||1;e=e||1;
+  if(n===1)return type==='tv'?`https://vidsrc.me/embed/tv?tmdb=${id}&season=${s}&episode=${e}`:`https://vidsrc.me/embed/movie?tmdb=${id}`;
+  if(n===2)return type==='tv'?`https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}`:`https://multiembed.mov/?video_id=${id}&tmdb=1`;
+  if(n===3)return type==='tv'?`https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`:`https://www.2embed.cc/embed/${id}`;
+  return'';
+}
+
+// সব server একসাথে ping — যেটায় content আছে সেটায় play
+async function autoPick(type,id,s,e){
+  setSrvStatus('🔍 খুঁজছি...');
+  document.querySelectorAll('.srv-btn').forEach(b=>{b.classList.remove('on');b.classList.add('trying');});
+
+  // প্রতিটা server fetch করে check — যেটা 200 দেবে সেটা জিতবে
+  const checks=[1,2,3].map(n=>
+    fetch(srvUrl(n,type,id,s,e),{method:'HEAD',mode:'no-cors',cache:'no-store'})
+      .then(()=>n).catch(()=>n) // no-cors সবসময় opaque — তাই order অনুযায়ী ফলাফল
+  );
+
+  // সব একসাথে race — প্রথমটা যে resolve করে সেটা
+  // কিন্তু no-cors এ error জানা যায় না, তাই ordered fallback ব্যবহার করি:
+  // Server 1 → 2 → 3 parallel load করি, যেটা প্রথমে সফলভাবে load হয় সেটা active রাখি
+
+  playOnServer(1,type,id,s,e);
+  // 5s পর যদি frame load না হয় → Server 2
+  let t1=setTimeout(()=>{
+    if(!frameLoaded){
+      setSrvStatus('Server 2 চেষ্টা করছি...');
+      playOnServer(2,type,id,s,e);
+      // আরো 5s পর → Server 3
+      let t2=setTimeout(()=>{
+        if(!frameLoaded){
+          setSrvStatus('Server 3 চেষ্টা করছি...');
+          playOnServer(3,type,id,s,e);
+          setTimeout(()=>setSrvStatus(''),4000);
+        }
+      },5000);
+      window._srvT2=t2;
+    }
+  },5000);
+  window._srvT1=t1;
+}
+
+function playOnServer(n,type,id,s,e){
+  frameLoaded=false;
+  curServer=n;
+  document.querySelectorAll('.srv-btn').forEach((b,i)=>{
+    b.classList.remove('on','trying');
+    if(i+1===n)b.classList.add('on');
+  });
+  document.getElementById('vFrame').src=srvUrl(n,type,id,s,e);
+}
+
+function onFrameLoad(){
+  const src=document.getElementById('vFrame').src;
+  if(!src||src==='about:blank')return;
+  frameLoaded=true;
+  clearTimeout(window._srvT1);clearTimeout(window._srvT2);
+  setSrvStatus('');
+}
+
+function setSrvStatus(msg){
+  const el=document.getElementById('srvStatus');
+  if(el)el.textContent=msg;
+}
+
+function switchServer(n,btn){
+  clearTimeout(window._srvT1);clearTimeout(window._srvT2);
+  frameLoaded=false;
+  document.querySelectorAll('.srv-btn').forEach(b=>b.classList.remove('on','trying'));
+  if(btn)btn.classList.add('on');
+  curServer=n;
+  setSrvStatus('');
+  if(!curMovie)return;
+  if(curMovie.source==='sheet'){document.getElementById('vFrame').src=getVideoUrl(curMovie);return;}
+  const type=curMovie.type==='series'?'tv':'movie';
+  document.getElementById('vFrame').src=srvUrl(n,type,curMovie.tmdb_id,curSeason,curEpisode);
+}
+
+function resetServers(){
+  clearTimeout(window._srvT1);clearTimeout(window._srvT2);
+  frameLoaded=false;curServer=1;curSeason=1;curEpisode=1;
+  document.querySelectorAll('.srv-btn').forEach((b,i)=>{
+    b.classList.remove('on','trying');
+    if(i===0)b.classList.add('on');
+  });
+  setSrvStatus('');
+}
+
+// ===== SPLASH =====
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    const sp=document.getElementById('splash');
+    sp.style.opacity='0';
+    setTimeout(()=>{
+      sp.style.display='none';
+      document.getElementById('popupAd').style.display='flex';
+      setTimeout(closePopup,5000);
+    },500);
+  },5000);
+});
+
+// ===== VIDSRC — শুধু play হওয়া মুভি =====
+async function loadVidsrcIds(){
+  try{
+    // Movie — ১০ পেজ
+    for(let p=1;p<=10;p++){
+      const r=await fetch(`https://vidsrc.xyz/movies/latest/page-${p}.json`);
+      const d=await r.json();
+      if(d&&d.result)d.result.forEach(m=>{
+        if(m.tmdb_id)vidsrcIds.add(String(m.tmdb_id));
+        if(m.imdb_id)vidsrcIds.add(m.imdb_id);
+      });
+    }
+    // TV Series — ৫ পেজ
+    for(let p=1;p<=5;p++){
+      const r=await fetch(`https://vidsrc.xyz/tvshows/latest/page-${p}.json`);
+      const d=await r.json();
+      if(d&&d.result)d.result.forEach(m=>{
+        if(m.tmdb_id)vidsrcIds.add(String(m.tmdb_id));
+        if(m.imdb_id)vidsrcIds.add(m.imdb_id);
+      });
+    }
+  }catch(e){vidsrcIds=null;}
+}
+function canPlay(m){
+  // vidsrc list লোড না হলে সব allow
+  if(!vidsrcIds)return true;
+  // Sheet থেকে আসা মুভি সব allow
+  if(m.source==='sheet')return true;
+  // vidsrc list এ আছে কিনা
+  if(vidsrcIds.has(String(m.tmdb_id))||vidsrcIds.has(m.imdb_id||''))return true;
+  // Indian/Bollywood/Korean/Anime মুভি vidsrc latest list এ কম থাকে
+  // কিন্তু play হতে পারে — তাই allow করি, play না হলে user Report করবে
+  const allowCats=['Indian','Bollywood','Bollywood Hindi','Korean','Anime','18+','Adult','Kolkata Bengali'];
+  if(m.category&&allowCats.some(c=>m.category.includes(c)))return true;
+  return false;
+}
+
+// ===== ১৫ মিনিট Ad =====
+function startMidAdTimer(){
+  clearInterval(midAdTimer);
+  midAdTimer=setInterval(()=>showMidAd(),MID_AD_INTERVAL);
+}
+function showMidAd(){
+  const ad=document.getElementById('midAd');
+  const count=document.getElementById('midCount');
+  const skip=document.getElementById('midSkip');
+  ad.classList.add('show');
+  skip.style.display='none';
+  let c=MID_AD_DURATION;
+  count.textContent='⏱ '+c+'s';
+  const t=setInterval(()=>{
+    c--;
+    if(c>0)count.textContent='⏱ '+c+'s';
+    else{clearInterval(t);count.textContent='';skip.style.display='inline-block';}
+  },1000);
+}
+function closeMidAd(){document.getElementById('midAd').classList.remove('show');}
+
+// ===== TMDB থেকে মুভি লোড =====
+async function loadTMDB(type,category,page=1){
+  return loadTMDBGrid(type,category,type==='tv'?'Web Series':'Hollywood');
+}
+
+async function loadTMDBGrid(type,category,catLabel){
+  document.getElementById('contentArea').innerHTML='<div class="loading">Loading...</div>';
+  try{
+    const pages=await Promise.all([1,2,3,4,5].map(p=>
+      fetch(`${TMDB}/${type}/${category}?api_key=${TMDB_KEY}&language=en-US&page=${p}&include_adult=false`).then(r=>r.json())
+    ));
+    const movies=pages.flatMap(data=>(data.results||[]))
+      .filter(m=>m.poster_path)
+      .filter((m,i,a)=>a.findIndex(x=>x.id===m.id)===i)
+      .map(m=>({
+        title:m.title||m.name,
+        poster:IMG+m.poster_path,
+        backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
+        year:(m.release_date||m.first_air_date||'').substr(0,4),
+        rating:m.vote_average?m.vote_average.toFixed(1):'',
+        type:type==='tv'?'series':'movie',
+        tmdb_id:m.id,
+        category:catLabel
+      })).filter(m=>canPlay(m));
+    renderGrid(movies,catLabel,'tmdb');
+    setBannerTMDB(movies.slice(0,8));
+  }catch(e){
+    document.getElementById('contentArea').innerHTML='<div class="loading">Error loading.</div>';
+  }
+}
+
+// ===== বিখ্যাত Bollywood মুভি — vidsrc এ আছে =====
+const BOLLYWOOD_IDS=[
+  // Shah Rukh Khan
+  19404,   // DDLJ
+  580489,  // Pathaan
+  951891,  // Jawan
+  14290,   // Don
+  1599,    // Swades
+  // Salman Khan
+  297762,  // Sultan
+  297802,  // Bajrangi Bhaijaan
+  292203,  // Tiger Zinda Hai
+  // Aamir Khan
+  758009,  // Dangal
+  390043,  // PK
+  99861,   // 3 Idiots
+  // Akshay Kumar
+  340101,  // Toilet Ek Prem Katha
+  497582,  // Kesari
+  // Hrithik Roshan
+  665,     // Kaho Naa Pyaar Hai
+  634492,  // War
+  // Deepika Padukone
+  297762,  // Om Shanti Om
+  // Ranveer Singh
+  375262,  // Padmaavat
+  // Ranbir Kapoor
+  400928,  // Sanju
+  // Ajay Devgn
+  290380,  // Drishyam
+  // Recent hits
+  839033,  // Animal
+  841887,  // Dunki
+  726566,  // Adipurush
+];
+
+const KOLKATA_IDS=[
+  // Prosenjit
+  27629,   // Chokher Bali
+  // Dev
+  242090,  // Chhaya
+  // Bengali hits
+  96724,   // Apur Sansar
+  18148,   // Pather Panchali
+  18149,   // Aparajito
+  56264,   // Charulata
+  // Modern Bengali
+  398173,  // Byomkesh Bakshy
+  339964,  // Detective Byomkesh Bakshy
+];
+
+async function loadLangGrid(lang,catLabel){
+  document.getElementById('contentArea').innerHTML='<div class="loading">Loading...</div>';
+  try{
+    let ids=[];
+    if(lang==='bn')ids=KOLKATA_IDS;
+    else if(lang==='hi')ids=BOLLYWOOD_IDS;
+
+    if(ids.length){
+      // Hardcoded বিখ্যাত মুভি
+      const details=await Promise.all(ids.map(id=>
+        fetch(`${TMDB}/movie/${id}?api_key=${TMDB_KEY}`).then(r=>r.json()).catch(()=>null)
+      ));
+      const hardcoded=details.filter(m=>m&&m.poster_path).map(m=>({
+        title:m.title||m.name,poster:IMG+m.poster_path,
+        backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
+        year:(m.release_date||'').substr(0,4),
+        rating:m.vote_average?m.vote_average.toFixed(1):'',
+        type:'movie',tmdb_id:m.id,category:catLabel
+      }));
+      // TMDB discover থেকেও আনি popular মুভি
+      const pages=await Promise.all([1,2,3].map(p=>
+        fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=${lang}&sort_by=vote_count.desc&include_adult=false&page=${p}`).then(r=>r.json())
+      ));
+      const discovered=pages.flatMap(d=>(d.results||[])).filter(m=>m.poster_path&&m.original_language===lang).map(m=>({
+        title:m.title||m.name,poster:IMG+m.poster_path,
+        backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
+        year:(m.release_date||'').substr(0,4),
+        rating:m.vote_average?m.vote_average.toFixed(1):'',
+        type:'movie',tmdb_id:m.id,category:catLabel
+      })).filter(m=>canPlay(m));
+      // merge — hardcoded আগে
+      const all=[...hardcoded,...discovered].filter((m,i,a)=>a.findIndex(x=>x.tmdb_id===m.tmdb_id)===i);
+      renderGrid(all,catLabel,'tmdb');
+    }else{
+      // অন্য ভাষা — canPlay filter
+      const pages=await Promise.all([1,2,3,4,5].map(p=>
+        fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=${lang}&sort_by=popularity.desc&include_adult=false&page=${p}`).then(r=>r.json())
+      ));
+      const movies=pages.flatMap(d=>(d.results||[])).filter(m=>m.poster_path)
+        .filter((m,i,a)=>a.findIndex(x=>x.id===m.id)===i)
+        .map(m=>({
+          title:m.title||m.name,poster:IMG+m.poster_path,
+          backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
+          year:(m.release_date||'').substr(0,4),
+          rating:m.vote_average?m.vote_average.toFixed(1):'',
+          type:'movie',tmdb_id:m.id,category:catLabel
+        })).filter(m=>canPlay(m));
+      renderGrid(movies,catLabel,'tmdb');
+    }
+  }catch(e){
+    document.getElementById('contentArea').innerHTML='<div class="loading">Error loading.</div>';
+  }
+}
+
+// ===== Indian Movies =====
+const SOUTH_INDIAN_IDS=[
+  // Prabhas
+  76341,   // Baahubali: The Beginning
+  278154,  // Baahubali 2
+  763215,  // Kalki 2898 AD
+  // Allu Arjun
+  822054,  // Pushpa 2
+  663712,  // Pushpa: The Rise
+  // Ram Charan
+  545611,  // RRR
+  // Rajinikanth
+  493922,  // Jailer
+  359724,  // Kabali
+  // Vijay Thalapathy
+  694919,  // Leo
+  855289,  // Varisu
+  // Ajith Kumar
+  724495,  // Thunivu
+  // Mohanlal
+  390043,  // Drishyam
+  // Fahadh Faasil
+  399579,  // Vikram
+  // Dhanush
+  264660,  // Atlee
+  // Yash
+  475557,  // KGF Chapter 1
+  725201,  // KGF Chapter 2
+  // Vijay Deverakonda
+  668534,  // Liger
+];
+
+async function loadIndian(){
+  document.getElementById('contentArea').innerHTML='<div class="loading">Loading...</div>';
+  try{
+    // Hardcoded বিখ্যাত South Indian মুভি
+    const details=await Promise.all(SOUTH_INDIAN_IDS.map(id=>
+      fetch(`${TMDB}/movie/${id}?api_key=${TMDB_KEY}`).then(r=>r.json()).catch(()=>null)
+    ));
+    const hardcoded=details.filter(m=>m&&m.poster_path).map(m=>({
+      title:m.title||m.name,poster:IMG+m.poster_path,
+      backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
+      year:(m.release_date||'').substr(0,4),
+      rating:m.vote_average?m.vote_average.toFixed(1):'',
+      type:'movie',tmdb_id:m.id,category:'Indian'
+    }));
+    // TMDB discover থেকেও আনি
+    const langs=['ta','te','kn','ml'];
+    const pages=await Promise.all(langs.flatMap(lang=>
+      [1,2].map(p=>fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=${lang}&sort_by=vote_count.desc&include_adult=false&page=${p}`).then(r=>r.json()))
+    ));
+    const discovered=pages.flatMap(d=>(d.results||[])).filter(m=>m.poster_path)
+      .filter((m,i,a)=>a.findIndex(x=>x.id===m.id)===i)
+      .map(m=>({
+        title:m.title||m.name,poster:IMG+m.poster_path,
+        backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
+        year:(m.release_date||'').substr(0,4),
+        rating:m.vote_average?m.vote_average.toFixed(1):'',
+        type:'movie',tmdb_id:m.id,category:'Indian'
+      })).filter(m=>canPlay(m));
+    const all=[...hardcoded,...discovered].filter((m,i,a)=>a.findIndex(x=>x.tmdb_id===m.tmdb_id)===i);
+    renderGrid(all,'🇮🇳 Indian Movies','tmdb');
+  }catch(e){
+    document.getElementById('contentArea').innerHTML='<div class="loading">Error loading.</div>';
+  }
+}
+
+// ===== 18+ Section — Romance/Thriller genre, সব server try করবে =====
+async function loadAdult(){
+  document.getElementById('contentArea').innerHTML='<div class="loading">Loading...</div>';
+  try{
+    // TMDB থেকে Romance + Erotic Thriller genre আনি
+    const [r1,r2,r3,r4,r5]=await Promise.all([
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=popularity.desc&include_adult=true&page=1`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=popularity.desc&include_adult=true&page=2`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749,53&sort_by=vote_count.desc&include_adult=true&page=1`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=vote_average.desc&vote_count.gte=50&include_adult=true&page=1`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=revenue.desc&include_adult=true&page=1`).then(r=>r.json()),
+    ]);
+    const all=[r1,r2,r3,r4,r5].flatMap(d=>(d.results||[]))
+      .filter(m=>m.poster_path)
+      .filter((m,i,a)=>a.findIndex(x=>x.id===m.id)===i)
+      .map(m=>({
+        title:m.title,poster:IMG+m.poster_path,
+        backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
+        year:(m.release_date||'').substr(0,4),
+        rating:m.vote_average?m.vote_average.toFixed(1):'',
+        type:'movie',tmdb_id:m.id,category:'18+'
+      }));
+    if(all.length){
+      renderGrid(all,'🔞 18+ Section','tmdb');
+    }else{
+      document.getElementById('contentArea').innerHTML='<div class="loading" style="color:#e50914;padding:40px 20px;text-align:center">18+ content not available at the moment.</div>';
+    }
+  }catch(e){
+    document.getElementById('contentArea').innerHTML='<div class="loading">Error loading.</div>';
+  }
+}
+
+// ===== Adult Section — Drama+Romance, সব server try করবে =====
+async function loadAdultContent(){
+  document.getElementById('contentArea').innerHTML='<div class="loading">Loading...</div>';
+  try{
+    const [r1,r2,r3]=await Promise.all([
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=18,10749&sort_by=popularity.desc&include_adult=true&page=1`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=18,10749&sort_by=vote_count.desc&include_adult=true&page=1`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=vote_count.desc&include_adult=true&vote_count.gte=100&page=1`).then(r=>r.json()),
+    ]);
+    const all=[r1,r2,r3].flatMap(d=>(d.results||[]))
+      .filter(m=>m.poster_path)
+      .filter((m,i,a)=>a.findIndex(x=>x.id===m.id)===i)
+      .map(m=>({
+        title:m.title,poster:IMG+m.poster_path,
+        backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
+        year:(m.release_date||'').substr(0,4),
+        rating:m.vote_average?m.vote_average.toFixed(1):'',
+        type:'movie',tmdb_id:m.id,category:'Adult'
+      }));
+    if(all.length){
+      renderGrid(all,'🔞 Adult','tmdb');
+    }else{
+      document.getElementById('contentArea').innerHTML='<div class="loading" style="color:#e50914">Adult content not available at the moment.</div>';
+    }
+  }catch(e){
+    document.getElementById('contentArea').innerHTML='<div class="loading">Error loading.</div>';
+  }
+}
+
+function setOn(btn){document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('on'));if(btn)btn.classList.add('on');}
+
+// ===== Genre ফিল্টার — সব দেশের মুভি =====
+async function filterGenre(btn,genreId){
+  document.querySelectorAll('.genre-btn').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  if(genreId===0){loadHome();return;}
+  document.getElementById('contentArea').innerHTML='<div class="loading">Loading...</div>';
+  try{
+    // language বাদ দিয়েছি — সব দেশের মুভি আসবে
+    const pages=await Promise.all([1,2,3,4,5].map(p=>
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=${genreId}&sort_by=popularity.desc&include_adult=false&page=${p}`).then(r=>r.json())
+    ));
+    const movies=pages.flatMap(data=>(data.results||[]))
+      .filter(m=>m.poster_path)
+      .filter((m,i,a)=>a.findIndex(x=>x.id===m.id)===i)
+      .map(m=>({
+        title:m.title||m.name,
+        poster:IMG+m.poster_path,
+        backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
+        year:(m.release_date||'').substr(0,4),
+        rating:m.vote_average?m.vote_average.toFixed(1):'',
+        type:'movie',tmdb_id:m.id,
+        category:'Genre'
+      })).filter(m=>canPlay(m));
+    renderGrid(movies,'🎬 All Countries','tmdb');
+  }catch(e){}
+}
+
+function renderTMDB(movies,title){renderGrid(movies,title,'tmdb');}
+
+// ===== Sheet Data লোড =====
+async function loadSheetData(){
+  try{
+    const r=await fetch(SHEET_API);
+    const t=await r.text();
+    const j=JSON.parse(t.substr(47).slice(0,-2));
+    allSheetData=j.table.rows.map(r=>({
+      title:r.c[0]?.v||'',
+      category:r.c[1]?.v||'',
+      poster:r.c[2]?.v||'',
+      imdb:r.c[3]?.v||'',
+      video:r.c[4]?.v||'',
+      year:r.c[5]?.v||'',
+      type:r.c[6]?.v||'movie',
+      series_id:r.c[7]?.v||'',
+      season:r.c[8]?.v||'1',
+      episode:r.c[9]?.v||'',
+      source:'sheet'
+    }));
+  }catch(e){}
+}
+
+function posterUrl(u){
+  if(!u)return'';
+  const m=u.match(/[?&]id=([^&]+)/)||u.match(/\/d\/([^/]+)/);
+  if(m)return`https://drive.google.com/thumbnail?id=${m[1]}&sz=w800`;
+  if(u.startsWith('http'))return u;
+  return'';
+}
+
+function getGdriveId(url){
+  if(!url)return null;
+  const m=url.match(/\/d\/([^/]+)/)||url.match(/[?&]id=([^&]+)/)||url.match(/open\?id=([^&]+)/);
+  return m?m[1]:null;
+}
+
+function getVideoUrl(m){
+  if(m.imdb){
+    if(m.type==='series')return`https://vidsrc.me/embed/tv?imdb=${m.imdb}&season=${m.season||1}&episode=${m.episode||1}`;
+    return`https://vidsrc.me/embed/movie?imdb=${m.imdb}`;
+  }
+  if(m.tmdb_id){
+    if(m.type==='series')return`https://vidsrc.me/embed/tv?tmdb=${m.tmdb_id}`;
+    return`https://vidsrc.me/embed/movie?tmdb=${m.tmdb_id}`;
+  }
+  const v=m.video||'';
+  if(!v)return'';
+  const yt=v.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([^&\n?#]+)/);
+  if(yt)return`https://www.youtube.com/embed/${yt[1]}?autoplay=1`;
+  const gdId=getGdriveId(v);
+  if(gdId)return`https://drive.google.com/file/d/${gdId}/preview`;
+  if(v.includes('streamtape'))return v.replace('/v/','/e/');
+  return v;
+}
+
+function getDownloadUrl(m){
+  const v=m.video||'';
+  const gdId=getGdriveId(v);
+  if(gdId)return`https://drive.google.com/uc?export=download&id=${gdId}`;
+  if(m.imdb||m.tmdb_id)return null; // streaming only
+  if(v&&!v.includes('youtube')&&!v.includes('youtu.be'))return v;
+  return null;
+}
+
+// ===== Home লোড =====
+async function loadHome(){
+  document.getElementById('contentArea').innerHTML='<div class="loading">Loading...</div>';
+  await Promise.all([loadSheetData(),loadVidsrcIds()]);
+  try{
+    const [trending,pop,top,series,hindi,tamil,telugu,korean,action,comedy,thriller,horror,now]=await Promise.all([
+      fetch(`${TMDB}/trending/movie/day?api_key=${TMDB_KEY}&include_adult=false`).then(r=>r.json()),
+      fetch(`${TMDB}/movie/popular?api_key=${TMDB_KEY}&language=en-US&page=1&include_adult=false`).then(r=>r.json()),
+      fetch(`${TMDB}/movie/top_rated?api_key=${TMDB_KEY}&language=en-US&page=1&include_adult=false`).then(r=>r.json()),
+      fetch(`${TMDB}/tv/popular?api_key=${TMDB_KEY}&language=en-US&page=1&include_adult=false`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=hi&sort_by=popularity.desc&include_adult=false`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=ta&sort_by=popularity.desc&include_adult=false`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=te&sort_by=popularity.desc&include_adult=false`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=ko&sort_by=popularity.desc&include_adult=false`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=28&sort_by=popularity.desc&include_adult=false`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=35&sort_by=popularity.desc&include_adult=false`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=53&sort_by=popularity.desc&include_adult=false`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=27&sort_by=popularity.desc&include_adult=false`).then(r=>r.json()),
+      fetch(`${TMDB}/movie/now_playing?api_key=${TMDB_KEY}&language=en-US&page=1&include_adult=false`).then(r=>r.json()),
+    ]);
+
+    function mapM(m,cat){
+      if(!m.poster_path)return null;
+      const obj={title:m.title||m.name,poster:IMG+m.poster_path,
+        backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
+        year:(m.release_date||m.first_air_date||'').substr(0,4),
+        rating:m.vote_average?m.vote_average.toFixed(1):'',
+        type:m.first_air_date?'series':'movie',tmdb_id:m.id,category:cat};
+      if(!canPlay(obj))return null;
+      return obj;
+    }
+
+    const trendMovies=(trending.results||[]).map(m=>mapM(m,'Hollywood')).filter(Boolean);
+    const popMovies=(pop.results||[]).map(m=>mapM(m,'Hollywood')).filter(Boolean);
+    const topMovies=(top.results||[]).map(m=>mapM(m,'Hollywood')).filter(Boolean);
+    const seriesData=(series.results||[]).map(m=>mapM(m,'Web Series')).filter(Boolean);
+    const hindiMovies=(hindi.results||[]).map(m=>mapM(m,'Bollywood')).filter(Boolean);
+    const indianMovies=[...(tamil.results||[]).map(m=>mapM(m,'Indian')),...(telugu.results||[]).map(m=>mapM(m,'Indian'))].filter(Boolean).filter((m,i,a)=>a.findIndex(x=>x.tmdb_id===m.tmdb_id)===i);
+    const koreanMovies=(korean.results||[]).map(m=>mapM(m,'Korean')).filter(Boolean);
+    const actionMovies=(action.results||[]).map(m=>mapM(m,'Hollywood')).filter(Boolean);
+    const comedyMovies=(comedy.results||[]).map(m=>mapM(m,'Hollywood')).filter(Boolean);
+    const thrillerMovies=(thriller.results||[]).map(m=>mapM(m,'Hollywood')).filter(Boolean);
+    const horrorMovies=(horror.results||[]).map(m=>mapM(m,'Hollywood')).filter(Boolean);
+    const nowMovies=(now.results||[]).map(m=>mapM(m,'Hollywood')).filter(Boolean);
+
+    // Banner — Trending Today
+    setBannerTMDB(trendMovies.slice(0,8));
+
+    let html='';let secCount=0;
+
+    function addSec(title,movies,allFn){
+      if(!movies||!movies.length)return;
+      html+=`<div class="section">
+        <div class="sec-head"><div class="sec-title">${title}</div>${allFn?`<div class="sec-all" onclick="${allFn}">All ›</div>`:''}</div>
+        <div class="h-scroll">${movies.map(m=>{
+          const img=m.source==='sheet'?m.poster:m.poster;
+          const onclick=m.source==='sheet'
+            ?`openPlayer(${JSON.stringify(m).replace(/'/g,"&#39;")})`
+            :`openPlayerTMDB(${JSON.stringify(m).replace(/'/g,"&#39;")})`;
+          return`<div class="m-card" onclick='${onclick}'>
+            <img class="m-thumb" src="${img}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
+            ${m.rating?`<div class="m-rating">⭐${m.rating}</div>`:''}
+            <div class="m-title">${m.title}</div>
+          </div>`;
+        }).join('')}
+        </div></div>`;
+      secCount++;if(secCount%6===0)html+=adBannerHtml();
+    }
+
+    // (Sheet movies এখন উপরের TMDB sections এ merged হয়ে গেছে)
+
+    // Sheet movies — category অনুযায়ী TMDB section এ merge করি
+    function getSheetByCat(cat){
+      return allSheetData.filter(d=>{
+        const cats=(d.category||'').split(',').map(c=>c.trim());
+        return cats.some(c=>c.toLowerCase().includes(cat.toLowerCase()));
+      }).map(m=>({...m,source:'sheet',poster:posterUrl(m.poster)}));
+    }
+
+    // Sheet মুভি TMDB movies এ prepend করি (category match অনুযায়ী)
+    const sheetHollywood=getSheetByCat('Hollywood');
+    const sheetBangla=getSheetByCat('Bangla');
+    const sheetHindi=getSheetByCat('Hindi').concat(getSheetByCat('Bollywood'));
+    const sheetIndian=getSheetByCat('Indian');
+    const sheetKorean=getSheetByCat('Korean');
+    const sheetAnime=getSheetByCat('Anime');
+    const sheetSeries=getSheetByCat('Series').concat(getSheetByCat('Web Series'));
+
+    function mergedSec(title,sheetArr,tmdbArr,allFn){
+      const merged=[...sheetArr,...tmdbArr.filter(t=>!sheetArr.find(s=>s.title===t.title))];
+      addSec(title,merged,allFn);
+    }
+
+    addSec('🔥 Trending Today',trendMovies,`loadTMDB('movie','popular')`);
+    mergedSec('🎬 Popular Movies',sheetHollywood,popMovies,`filterCat(null,'Hollywood')`);
+    addSec('🆕 Now Playing',nowMovies,`loadTMDB('movie','now_playing')`);
+    addSec('⭐ Top Rated',topMovies,`loadTMDB('movie','top_rated')`);
+    mergedSec('📺 Web Series',sheetSeries,seriesData,`filterCat(null,'Web Series')`);
+    mergedSec('🎪 Bollywood Hindi',sheetHindi,hindiMovies,`filterCat(null,'Hindi')`);
+    mergedSec('🇮🇳 Indian Movies',sheetIndian,indianMovies,`filterCat(null,'Indian')`);
+    mergedSec('🇰🇷 Korean Movies',sheetKorean,koreanMovies,`filterCat(null,'Korean')`);
+    mergedSec('🎌 Bangla',sheetBangla,[],`filterCat(null,'Bangla')`);
+    addSec('💥 Action',actionMovies,'');
+    addSec('😂 Comedy',comedyMovies,'');
+    addSec('😱 Thriller',thrillerMovies,'');
+    addSec('👻 Horror',horrorMovies,'');
+
+    // Sheet custom categories (যেগুলো উপরে নেই)
+    const knownCats=['hollywood','bangla','hindi','bollywood','indian','korean','anime','series','web series','movie'];
+    const customCats={};
+    allSheetData.filter(d=>d.type==='movie'||d.type==='series').forEach(m=>{
+      (m.category||'').split(',').map(c=>c.trim()).filter(Boolean).forEach(cat=>{
+        if(!knownCats.includes(cat.toLowerCase())){
+          if(!customCats[cat])customCats[cat]=[];
+          customCats[cat].push({...m,source:'sheet',poster:posterUrl(m.poster)});
+        }
+      });
+    });
+    Object.keys(customCats).forEach(cat=>{
+      if(customCats[cat].length)addSec(`📁 ${cat}`,customCats[cat],'');
+      secCount++;if(secCount%6===0)html+=adBannerHtml();
+    });
+
+    // Courses — YouTube style wide (ফাঁকা থাকবে, course video আসলে দেখাবে)
+    const bangla=allSheetData.filter(d=>d.type==='bangla_course');
+    const english=allSheetData.filter(d=>d.type==='english_course');
+    const allCourses=[...bangla,...english];
+    html+=`<div class="section">
+      <div class="sec-head"><div class="sec-title">📚 Courses</div></div>
+      <div class="h-scroll-wide">`;
+    if(allCourses.length){
+      html+=allCourses.map(m=>`
+        <div class="w-card" onclick="openPlayer(${esc(m)})">
+          <img class="w-thumb" src="${posterUrl(m.poster)}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
+          <div class="w-title">${m.title}</div>
+        </div>`).join('');
+    }else{
+      html+=`<div style="color:#444;font-size:12px;padding:20px 10px">Course videos coming soon...</div>`;
+    }
+    html+=`</div></div>`;
+    secCount++;if(secCount%6===0)html+=adBannerHtml();
+
+    // Cartoons
+    const cartoons=allSheetData.filter(d=>d.type==='cartoon');
+    if(cartoons.length){
+      html+=`<div class="section">
+        <div class="sec-head"><div class="sec-title">🎨 Cartoons</div></div>
+        <div class="h-scroll-wide">${cartoons.map(m=>`
+          <div class="w-card" onclick="openPlayer(${esc(m)})">
+            <img class="w-thumb" src="${posterUrl(m.poster)}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
+            <div class="w-title">${m.title}</div>
+          </div>`).join('')}</div></div>`;
+      secCount++;if(secCount%6===0)html+=adBannerHtml();
+    }
+
+    // ===== FOR YOU section — সবার নিচে গ্রিড ভিউ =====
+    html+=adBannerHtml();
+    const forYouMovies=[...trendMovies,...popMovies,...seriesData].filter((m,i,a)=>a.findIndex(x=>x.tmdb_id===m.tmdb_id)===i).slice(0,30);
+    window._forYouData=forYouMovies;
+    html+=`<div style="padding:10px 15px 5px;font-size:15px;font-weight:bold">⚡ For You</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:5px 15px 80px;align-items:start">`;
+    forYouMovies.forEach((m,i)=>{
+      if(i>0&&i%9===0){
+        html+=`</div><div style="margin:8px 15px;border-radius:8px;background:#1a1a1a;border:1px dashed #2a2a2a;height:80px;display:flex;align-items:center;justify-content:center;color:#555;font-size:12px">📢 Advertisement</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 15px;align-items:start">`;
+      }
+      html+=`<div style="cursor:pointer;overflow:hidden" onclick="forYouClick(${i})">
+        <div style="width:100%;padding-top:150%;position:relative;border-radius:7px;overflow:hidden;background:#252525">
+          <img style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover" src="${m.poster}" onerror="this.style.background='#333'" loading="lazy" alt="">
+        </div>
+        <div style="font-size:10px;margin-top:4px;text-align:center;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.title}</div>
+      </div>`;
+    });
+    html+=`</div>`;
+
+    document.getElementById('contentArea').innerHTML=html||'<div class="loading">No content</div>';
+
+  }catch(e){
+    document.getElementById('contentArea').innerHTML='<div class="loading">Error loading.</div>';
+  }
+}
+
+function adBannerHtml(){
+  return`<div class="ad-banner-home">
+    <!-- ===== Home Ad কোড এখানে ===== -->
+    <div class="ad-banner-home-inner"><span style="font-size:24px">📢</span><span>Advertisement</span></div>
+  </div>`;
+}
+
+function setBannerTMDB(items){
+  if(!items.length)return;
+  const s=document.getElementById('bSlides');
+  s.innerHTML=items.map(m=>`
+    <div class="b-slide" onclick='openPlayerTMDB(${JSON.stringify(m).replace(/'/g,"&#39;")})'>
+      <img src="${m.backdrop||m.poster}" onerror="this.style.background='linear-gradient(135deg,#e50914,#333)'" alt="${m.title}">
+    </div>`).join('');
+  document.getElementById('bDots').innerHTML=items.map((_,i)=>`<div class="dot ${i===0?'on':''}"></div>`).join('');
+  document.getElementById('bTitle').textContent=items[0].title;
+  document.getElementById('bMeta').textContent=items[0].category+' • '+items[0].year+(items[0].rating?' • ⭐'+items[0].rating:'');
+  clearInterval(bTimer);
+  bTimer=setInterval(()=>{
+    curBanner=(curBanner+1)%items.length;
+    s.style.transform=`translateX(-${curBanner*100}%)`;
+    document.getElementById('bTitle').textContent=items[curBanner].title;
+    document.getElementById('bMeta').textContent=items[curBanner].category+' • '+items[curBanner].year+(items[curBanner].rating?' • ⭐'+items[curBanner].rating:'');
+    document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i===curBanner));
+  },4000);
+}
+
+function esc(m){return JSON.stringify(m).replace(/"/g,'&quot;')}
+
+// ===== TMDB Player =====
+async function openPlayerTMDB(m){
+  if(typeof m==='string')m=JSON.parse(m);
+  curMovie=m;
+  resetServers();
+  // TMDB মুভিতে download নেই, server switcher দেখাও
+  const dlBtn=document.getElementById('dlBtn');
+  if(dlBtn){dlBtn.style.display='flex';dlBtn.onclick=()=>showAd(()=>alert('Download not available for streaming movies'));}
+  const srvWrap=document.querySelector('.server-wrap');
+  if(srvWrap)srvWrap.style.display='block';
+  document.getElementById('plTitle').textContent=m.title;
+  document.getElementById('pHeadTitle').textContent=m.title;
+  document.getElementById('plMeta').textContent=`${m.category} • ${m.year}`;
+  document.getElementById('plRating').textContent=m.rating?'⭐ '+m.rating+' / 10':'';
+
+  const vtype=m.type==='series'?'tv':'movie';
+  if(m.type==='series'){
+    document.getElementById('epWrap').style.display='block';
+    loadSeasons(m.tmdb_id);
+  } else {
+    document.getElementById('epWrap').style.display='none';
+  }
+  autoPick(vtype,m.tmdb_id,1,1);
+
+  // Related — সব ক্যাটাগরিতে নায়কের মুভি + একই genre
+  try{
+    let relMovies=[];
+    const adultCat=m.category==='18+'||m.category==='Adult';
+    const includeAdult=adultCat?'true':'false';
+
+    if(m.type==='series'){
+      const r=await fetch(`${TMDB}/tv/${m.tmdb_id}/similar?api_key=${TMDB_KEY}&include_adult=${includeAdult}`);
+      const d=await r.json();
+      relMovies=(d.results||[]).filter(r=>r.poster_path).filter(r=>canPlay({tmdb_id:r.id}));
+    }else{
+      const [castRes,detailRes]=await Promise.all([
+        fetch(`${TMDB}/movie/${m.tmdb_id}/credits?api_key=${TMDB_KEY}`).then(r=>r.json()),
+        fetch(`${TMDB}/movie/${m.tmdb_id}?api_key=${TMDB_KEY}`).then(r=>r.json()),
+      ]);
+      const castList=(castRes.cast||[]).slice(0,5);
+      let castMovies=[];
+      if(castList.length){
+        const castResults=await Promise.all(
+          castList.map(actor=>
+            fetch(`${TMDB}/person/${actor.id}/movie_credits?api_key=${TMDB_KEY}`)
+              .then(r=>r.json())
+              .then(d=>(d.cast||[]).filter(r=>r.poster_path&&r.id!==m.tmdb_id))
+              .catch(()=>[])
+          )
+        );
+        // cast মুভি সব allow — play না হলে user Report করবে
+        castMovies=castResults.flat();
+      }
+      const genres=(detailRes.genres||[]).map(g=>g.id).slice(0,2).join(',');
+      let genreMovies=[];
+      if(genres){
+        const gRes=await fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=${genres}&sort_by=popularity.desc&include_adult=${includeAdult}`);
+        const gData=await gRes.json();
+        genreMovies=(gData.results||[]).filter(r=>r.poster_path&&r.id!==m.tmdb_id&&canPlay({tmdb_id:r.id}));
+      }
+      const all=[...castMovies,...genreMovies];
+      relMovies=all
+        .filter((r,i,a)=>a.findIndex(x=>x.id===r.id)===i)
+        .sort((a,b)=>(b.vote_count||0)-(a.vote_count||0))
+        .slice(0,24);
+    }
+
+    window._relData=relMovies.slice(0,24).map(r=>({
+      title:r.title||r.name,
+      poster:IMG+r.poster_path,
+      year:(r.release_date||r.first_air_date||'').substr(0,4),
+      rating:r.vote_average?r.vote_average.toFixed(1):'',
+      type:m.type,tmdb_id:r.id,category:m.category
+    }));
+    window._relSource='tmdb';
+    let relHtml='';
+    window._relData.forEach((rm,i)=>{
+      if(i>0&&i%9===0){
+        relHtml+=`<div class="rel-ad-wrap" style="grid-column:1/-1">📢 Advertisement</div>`;
+      }
+      relHtml+=`<div class="r-card" onclick="relClick(${i})">
+        <div class="r-poster"><img src="${rm.poster}" onerror="this.style.background='#333'" loading="lazy" alt=""></div>
+        <div class="r-title">${rm.title}</div>
+      </div>`;
+    });
+    document.getElementById('relGrid').innerHTML=relHtml;
+  }catch(e){}
+
+  saveHistory(m);
+  startMidAdTimer();
+  showPage('playerPage');
+  initGesture();
+}
+
+// ===== Season লোড =====
+async function loadSeasons(tmdbId){
+  try{
+    const r=await fetch(`${TMDB}/tv/${tmdbId}?api_key=${TMDB_KEY}`);
+    const data=await r.json();
+    const seasons=data.seasons.filter(s=>s.season_number>0);
+    document.getElementById('seasonRow').innerHTML=seasons.map((s,i)=>`
+      <button class="season-btn ${i===0?'on':''}" onclick="loadEpisodes(${tmdbId},${s.season_number},this)">${s.name}</button>
+    `).join('');
+    if(seasons.length)loadEpisodes(tmdbId,seasons[0].season_number,null);
+  }catch(e){}
+}
+
+async function loadEpisodes(tmdbId,season,btn){
+  if(btn){
+    document.querySelectorAll('.season-btn').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+  }
+  try{
+    const r=await fetch(`${TMDB}/tv/${tmdbId}/season/${season}?api_key=${TMDB_KEY}`);
+    const data=await r.json();
+    document.getElementById('epRow').innerHTML=data.episodes.map((ep,i)=>`
+      <button class="ep-btn ${i===0?'on':''}" onclick="playEpisode(${tmdbId},${season},${ep.episode_number},this)">${ep.episode_number}</button>
+    `).join('');
+  }catch(e){}
+}
+
+function playEpisode(tmdbId,season,episode,btn){
+  document.querySelectorAll('.ep-btn').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  curSeason=season;curEpisode=episode;
+  clearTimeout(window._srvT1);clearTimeout(window._srvT2);
+  autoPick('tv',tmdbId,season,episode);
+}
+
+// ===== Sheet Player =====
+function openPlayer(m){
+  if(typeof m==='string')m=JSON.parse(m);
+  curMovie=m;
+  resetServers();
+  const videoUrl=getVideoUrl(m);
+  const dlUrl=getDownloadUrl(m);
+
+  document.getElementById('vFrame').src=videoUrl;
+  document.getElementById('plTitle').textContent=m.title;
+  document.getElementById('pHeadTitle').textContent=m.title;
+  document.getElementById('plMeta').textContent=`${m.category||''} • ${m.year||''}`;
+  document.getElementById('plRating').textContent='';
+  document.getElementById('epWrap').style.display='none';
+
+  // Download button — Google Drive হলে সরাসরি download, নইলে hide
+  const dlBtn=document.getElementById('dlBtn');
+  if(dlUrl){
+    dlBtn.style.display='flex';
+    dlBtn.onclick=()=>startDownload(dlUrl);
+  }else{
+    dlBtn.style.display='none';
+  }
+
+  // Server buttons — Google Drive হলে লুকাও (server switch দরকার নেই)
+  const srvWrap=document.querySelector('.server-wrap');
+  if(srvWrap)srvWrap.style.display=dlUrl?'none':'block';
+
+  const rel=allSheetData.filter(x=>x.category===m.category&&x.title!==m.title).slice(0,24);
+  window._relData=rel;
+  window._relSource='sheet';
+  let relHtml='';
+  rel.forEach((r,i)=>{
+    if(i>0&&i%9===0){
+      relHtml+=`<div class="rel-ad-wrap" style="grid-column:1/-1">📢 Advertisement</div>`;
+    }
+    relHtml+=`<div class="r-card" onclick="relClick(${i})">
+      <div class="r-poster"><img src="${posterUrl(r.poster)}" onerror="this.style.background='#333'" loading="lazy" alt=""></div>
+      <div class="r-title">${r.title}</div>
+    </div>`;
+  });
+  document.getElementById('relGrid').innerHTML=relHtml;
+  saveHistory(m);startMidAdTimer();showPage('playerPage');initGesture();
+}
+
+// ===== Gesture Mode Toggle =====
+let gestureModeOn=false;
+function toggleGestureMode(){
+  gestureModeOn=!gestureModeOn;
+  const layer=document.getElementById('gestureLayer');
+  const frame=document.getElementById('vFrame');
+  const btn=document.getElementById('gestureToggle');
+  if(gestureModeOn){
+    layer.style.display='block';
+    frame.style.pointerEvents='none';
+    btn.textContent='▶ Play Mode';
+    btn.style.background='rgba(229,9,20,0.85)';
+  }else{
+    layer.style.display='none';
+    frame.style.pointerEvents='auto';
+    btn.textContent='🖐 Gesture';
+    btn.style.background='rgba(0,0,0,0.7)';
+  }
+}
+
+// ===== GESTURE =====
+function initGesture(){
+  gestureModeOn=false;
+  const layer=document.getElementById('gestureLayer');
+  const frame=document.getElementById('vFrame');
+  const btn=document.getElementById('gestureToggle');
+  layer.style.display='none';
+  frame.style.pointerEvents='auto';
+  if(btn){btn.textContent='🖐 Gesture';btn.style.background='rgba(0,0,0,0.7)';}
+  const ind=document.getElementById('gestureIndicator');
+  const volBar=document.getElementById('volBar');
+  const briBar=document.getElementById('briBar');
+  const volFill=document.getElementById('volFill');
+  const briFill=document.getElementById('briFill');
+  let startX,startY,startVol=0.8,startBri=1,gType=null;
+  let volLevel=0.8,briLevel=1;
+  layer.ontouchstart=e=>{
+    const t=e.touches[0];
+    startX=t.clientX;startY=t.clientY;gType=null;
+    startVol=volLevel;startBri=briLevel;
+  };
+  layer.ontouchmove=e=>{
+    e.preventDefault();
+    const t=e.touches[0];
+    const dy=startY-t.clientY;
+    const dx=t.clientX-startX;
+    const w=layer.offsetWidth;
+    if(!gType&&Math.abs(dy)>12&&Math.abs(dy)>Math.abs(dx)){
+      gType=t.clientX>w/2?'vol':'bri';
+    }
+    if(gType==='vol'){
+      volBar.style.display='block';briBar.style.display='none';
+      volLevel=Math.min(1,Math.max(0,startVol+dy/100));
+      volFill.style.height=(volLevel*100)+'%';
+      showInd('🔊 '+(Math.round(volLevel*100))+'%');
+    }else if(gType==='bri'){
+      briBar.style.display='block';volBar.style.display='none';
+      briLevel=Math.min(1,Math.max(0.1,startBri+dy/100));
+      briFill.style.height=(briLevel*100)+'%';
+      document.getElementById('vidWrap').style.filter=`brightness(${briLevel})`;
+      showInd('☀️ '+(Math.round(briLevel*100))+'%');
+    }
+  };
+  layer.ontouchend=()=>{
+    setTimeout(()=>{volBar.style.display='none';briBar.style.display='none';ind.classList.remove('show');},800);
+    gType=null;
+  };
+  function showInd(txt){ind.textContent=txt;ind.classList.add('show');}
+}
+
+// ===== Report =====
+function reportMovie(){
+  if(!curMovie)return;
+  const title=curMovie.title||'Unknown';
+  brokenMovies=JSON.parse(localStorage.getItem('broken')||'[]');
+  const idx=brokenMovies.findIndex(b=>b.title===title);
+  if(idx>=0)brokenMovies[idx].count=(brokenMovies[idx].count||1)+1;
+  else brokenMovies.push({title,date:new Date().toLocaleDateString(),count:1});
+  localStorage.setItem('broken',JSON.stringify(brokenMovies));
+  alert('✅ রিপোর্ট করা হয়েছে! আমরা শীঘ্রই ঠিক করব।');
+}
+
+// ===== Search =====
+let searchOpen=false;
+function toggleSearch(){
+  const box=document.getElementById('searchBox');
+  searchOpen=!searchOpen;
+  box.classList.toggle('open',searchOpen);
+  if(searchOpen){
+    document.getElementById('searchPage').classList.add('show');
+    document.getElementById('searchPageInput').focus();
+  }
+}
+function closeSearch(){
+  document.getElementById('searchPage').classList.remove('show');
+  document.getElementById('searchBox').classList.remove('open');
+  searchOpen=false;
+}
+function liveSearch(q){
+  if(q.length>0){
+    document.getElementById('searchPage').classList.add('show');
+    document.getElementById('searchPageInput').value=q;
+    doSearch(q);
+  }
+}
+async function doSearch(q){
+  const res=document.getElementById('searchResults');
+  if(!q){res.innerHTML='';return;}
+  res.innerHTML='<div class="loading">Searching...</div>';
+  try{
+    // Sheet থেকে আগে search করি
+    const sheetResults=allSheetData.filter(m=>
+      m.title&&m.title.toLowerCase().includes(q.toLowerCase())
+    ).slice(0,20);
+
+    const r=await fetch(`${TMDB}/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(q)}&include_adult=false`);
+    const data=await r.json();
+
+    // Actor/Person থাকলে তার মুভি আনব
+    const person=(data.results||[]).find(m=>m.media_type==='person'&&m.profile_path);
+    if(person&&!sheetResults.length){
+      res.innerHTML=`<div style="display:flex;align-items:center;gap:12px;padding:15px;background:#1a1a1a;margin:10px 15px;border-radius:10px">
+        <img src="${IMG+person.profile_path}" style="width:60px;height:60px;border-radius:50%;object-fit:cover">
+        <div>
+          <div style="font-size:15px;font-weight:bold">${person.name}</div>
+          <div style="font-size:12px;color:#888">Actor · Loading movies...</div>
+        </div>
+      </div><div id="actorMovies" class="search-grid"></div>`;
+
+      // নায়কের সব মুভি আনব
+      const mc=await fetch(`${TMDB}/person/${person.id}/combined_credits?api_key=${TMDB_KEY}`);
+      const md=await mc.json();
+      const actorMovies=(md.cast||[])
+        .filter(m=>m.poster_path&&(m.media_type==='movie'||m.media_type==='tv'))
+        .sort((a,b)=>(b.popularity||0)-(a.popularity||0))
+        .slice(0,50);
+
+      // Actor info আপডেট
+      res.innerHTML=`<div style="display:flex;align-items:center;gap:12px;padding:15px;background:#1a1a1a;margin:10px 15px;border-radius:10px">
+        <img src="${IMG+person.profile_path}" style="width:60px;height:60px;border-radius:50%;object-fit:cover">
+        <div>
+          <div style="font-size:15px;font-weight:bold">${person.name}</div>
+          <div style="font-size:12px;color:#888">${actorMovies.length} movies found</div>
+        </div>
+      </div>`;
+
+      // মুভি দেখাই — window array তে রাখব
+      window._actorMovies=actorMovies.map(m=>({
+        title:m.title||m.name,
+        poster:IMG+m.poster_path,
+        year:(m.release_date||m.first_air_date||'').substr(0,4),
+        rating:m.vote_average?m.vote_average.toFixed(1):'',
+        type:m.media_type==='tv'?'series':'movie',
+        tmdb_id:m.id,category:'Hollywood'
+      }));
+
+      let html='<div class="search-grid">';
+      actorMovies.forEach((m,i)=>{
+        if(i>0&&i%9===0){
+          html+=`</div><div class="ad-search"><div class="ad-search-inner"><span style="font-size:24px">📢</span><span>Advertisement</span></div></div><div class="search-grid">`;
+        }
+        html+=`<div class="sg-card" onclick="actorMovieClick(${i})">
+          <img class="sg-thumb" src="${IMG+m.poster_path}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title||m.name}">
+          <div class="sg-title">${m.title||m.name}</div>
+          <div class="sg-year">${(m.release_date||m.first_air_date||'').substr(0,4)}</div>
+        </div>`;
+      });
+      html+='</div>';
+      res.innerHTML+=html;
+      return;
+    }
+
+    // সাধারণ movie/series search — Sheet + TMDB merge
+    const tmdbFound=(data.results||[]).filter(m=>m.poster_path&&m.media_type!=='person');
+
+    // Sheet results আগে দেখাই
+    let html='';
+    if(sheetResults.length){
+      html+=`<div style="padding:8px 15px 4px;font-size:12px;color:#e50914;font-weight:bold">📁 My Collection</div>
+        <div class="search-grid">`;
+      sheetResults.forEach((m,i)=>{
+        html+=`<div class="sg-card" onclick="openPlayer(${JSON.stringify(m).replace(/'/g,"&#39;")})">
+          <img class="sg-thumb" src="${posterUrl(m.poster)}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
+          <div class="sg-title">${m.title}</div>
+          <div class="sg-year" style="color:#e50914">⬇ Download</div>
+        </div>`;
+      });
+      html+='</div>';
+    }
+
+    if(tmdbFound.length){
+      html+=`<div style="padding:8px 15px 4px;font-size:12px;color:#888;font-weight:bold">🌐 Online</div>`;
+      window._searchMovies=tmdbFound.map(m=>({
+        title:m.title||m.name,
+        poster:IMG+m.poster_path,
+        backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
+        year:(m.release_date||m.first_air_date||'').substr(0,4),
+        rating:m.vote_average?m.vote_average.toFixed(1):'',
+        type:m.media_type==='tv'?'series':'movie',
+        tmdb_id:m.id,
+        category:m.media_type==='tv'?'Web Series':'Hollywood'
+      }));
+      html+='<div class="search-grid">';
+      tmdbFound.forEach((m,i)=>{
+        if(i>0&&i%9===0){
+          html+=`</div><div class="ad-search"><div class="ad-search-inner"><span style="font-size:24px">📢</span><span>Advertisement</span></div></div><div class="search-grid">`;
+        }
+        html+=`<div class="sg-card" onclick="searchMovieClick(${i})">
+          <img class="sg-thumb" src="${IMG+m.poster_path}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title||m.name}">
+          <div class="sg-title">${m.title||m.name}</div>
+          <div class="sg-year">${(m.release_date||m.first_air_date||'').substr(0,4)}</div>
+        </div>`;
+      });
+      html+='</div>';
+    }
+
+    if(!sheetResults.length&&!tmdbFound.length){
+      res.innerHTML='<div class="loading">No results found</div>';return;
+    }
+    res.innerHTML=html;
+  }catch(e){
+    res.innerHTML='<div class="loading">Error searching.</div>';
+  }
+}
+
+function actorMovieClick(idx){
+  const m=window._actorMovies&&window._actorMovies[idx];
+  if(m)openPlayerTMDB(m);
+}
+function searchMovieClick(idx){
+  const m=window._searchMovies&&window._searchMovies[idx];
+  if(m)openPlayerTMDB(m);
+}
+
+function showActorSearch(){
+  document.getElementById('searchPage').classList.add('show');
+  const inp=document.getElementById('searchPageInput');
+  inp.placeholder='Search actor name...';
+  inp.value='';
+  inp.focus();
+  document.getElementById('searchResults').innerHTML=`
+    <div style="padding:15px;color:#888;font-size:13px">
+      Search any actor name:<br><br>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+        ${['Shah Rukh Khan','Salman Khan','Prabhas','Allu Arjun','Vijay','Rajinikanth','Aamir Khan','Hrithik Roshan','Deepika Padukone','Katrina Kaif','Tom Cruise','Robert Downey Jr','Chris Evans','Scarlett Johansson','Leonardo DiCaprio','Brad Pitt','Will Smith','Keanu Reeves','Dwayne Johnson','Ryan Reynolds'].map(n=>`
+          <div onclick="document.getElementById('searchPageInput').value='${n}';doSearch('${n}')" 
+            style="background:#1e1e1e;border:1px solid #333;color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer">${n}</div>
+        `).join('')}
+      </div>
+    </div>`;
+}
+
+function saveHistory(m){
+  hist=hist.filter(h=>h.title!==m.title);
+  hist.unshift(m);
+  if(hist.length>50)hist.pop();
+  localStorage.setItem('ch',JSON.stringify(hist));
+}
+
+function filterCat(btn,cat){
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  if(cat==='All'){loadHome();return;}
+
+  // Sheet থেকে এই category র মুভি
+  const sheetMovies=allSheetData.filter(d=>{
+    const cats=(d.category||'').split(',').map(c=>c.trim());
+    return cats.includes(cat);
+  }).map(m=>({...m,source:'sheet'}));
+
+  // TMDB থেকেও আনি এবং Sheet এর সাথে merge করব
+  document.getElementById('contentArea').innerHTML='<div class="loading">Loading...</div>';
+
+  async function mergeAndRender(tmdbPromise,label){
+    try{
+      let tmdbMovies=[];
+      if(tmdbPromise){
+        const pages=await tmdbPromise;
+        tmdbMovies=pages.flatMap(d=>(d.results||[])).filter(m=>m.poster_path)
+          .filter((m,i,a)=>a.findIndex(x=>x.id===m.id)===i)
+          .map(m=>({
+            title:m.title||m.name,poster:IMG+m.poster_path,
+            backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
+            year:(m.release_date||m.first_air_date||'').substr(0,4),
+            rating:m.vote_average?m.vote_average.toFixed(1):'',
+            type:m.first_air_date?'series':'movie',
+            tmdb_id:m.id,category:cat,source:'tmdb'
+          })).filter(m=>canPlay(m));
+      }
+      // Sheet মুভি আগে, তারপর TMDB
+      const all=[...sheetMovies,...tmdbMovies];
+      if(!all.length){
+        document.getElementById('contentArea').innerHTML='<div class="loading">No content found</div>';
+        return;
+      }
+      // mixed source render
+      window._gridData=all;
+      window._gridSource='mixed';
+      let html=`<div style="padding:10px 15px 5px;font-size:15px;font-weight:bold">${label}</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:5px 15px 80px;align-items:start">`;
+      all.forEach((m,i)=>{
+        if(i>0&&i%9===0){
+          html+=`</div><div style="margin:8px 15px;border-radius:8px;background:#1a1a1a;border:1px dashed #2a2a2a;height:80px;display:flex;align-items:center;justify-content:center;color:#555;font-size:12px">📢 Advertisement</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 15px;align-items:start">`;
+        }
+        const img=m.source==='sheet'?posterUrl(m.poster):m.poster;
+        html+=`<div style="cursor:pointer;width:100%;overflow:hidden" data-idx="${i}" onclick="mixedGridClick(${i})">
+          <div style="width:100%;padding-top:150%;position:relative;border-radius:7px;overflow:hidden;background:#252525">
+            <img style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover" src="${img}" onerror="this.style.background='#333'" loading="lazy" alt="">
+          </div>
+          <div style="font-size:10px;margin-top:4px;text-align:center;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%">${m.title}</div>
+        </div>`;
+      });
+      html+='</div>';
+      document.getElementById('contentArea').innerHTML=html;
+    }catch(e){
+      // TMDB fail হলেও Sheet দেখাই
+      if(sheetMovies.length)renderGrid(sheetMovies,label,'sheet');
+      else document.getElementById('contentArea').innerHTML='<div class="loading">Error loading.</div>';
+    }
+  }
+
+  if(cat==='Hollywood')
+    mergeAndRender(Promise.all([1,2,3,4,5].map(p=>fetch(`${TMDB}/movie/popular?api_key=${TMDB_KEY}&language=en-US&page=${p}&include_adult=false`).then(r=>r.json()))),'🎬 Hollywood');
+  else if(cat==='Bangla')
+    mergeAndRender(Promise.all([1,2,3].map(p=>fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=bn&sort_by=vote_count.desc&include_adult=false&page=${p}`).then(r=>r.json()))),'🎬 Bangla');
+  else if(cat==='Hindi'||cat==='Bollywood')
+    mergeAndRender(Promise.all([1,2,3].map(p=>fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=hi&sort_by=popularity.desc&include_adult=false&page=${p}`).then(r=>r.json()))),'🎪 Bollywood Hindi');
+  else if(cat==='Indian')
+    mergeAndRender(Promise.all(['ta','te','kn','ml'].flatMap(l=>[1,2].map(p=>fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=${l}&sort_by=vote_count.desc&include_adult=false&page=${p}`).then(r=>r.json())))),'🇮🇳 Indian');
+  else if(cat==='Korean')
+    mergeAndRender(Promise.all([1,2,3].map(p=>fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=ko&sort_by=popularity.desc&include_adult=false&page=${p}`).then(r=>r.json()))),'🇰🇷 Korean');
+  else if(cat==='Anime')
+    mergeAndRender(Promise.all([1,2,3].map(p=>fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=ja&sort_by=popularity.desc&include_adult=false&page=${p}`).then(r=>r.json()))),'🎌 Anime');
+  else if(cat==='Web Series')
+    mergeAndRender(Promise.all([1,2,3].map(p=>fetch(`${TMDB}/tv/popular?api_key=${TMDB_KEY}&language=en-US&page=${p}&include_adult=false`).then(r=>r.json()))),'📺 Web Series');
+  else{
+    // Sheet only category (যেমন custom category)
+    if(sheetMovies.length)renderGrid(sheetMovies,cat,'sheet');
+    else document.getElementById('contentArea').innerHTML='<div class="loading">No content found</div>';
+  }
+}
+
+function mixedGridClick(idx){
+  const m=window._gridData&&window._gridData[idx];
+  if(!m)return;
+  if(m.source==='sheet')openPlayer(m);
+  else openPlayerTMDB(m);
+}
+function filterType(type){
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('on'));
+  const f=allSheetData.filter(d=>d.type===type);
+  renderGrid(f,type,'sheet');
+}
+
+// সব জায়গায় গ্রিড — ৩টা করে লাইন, সব সমান সাইজ
+function renderGrid(data,title,source){
+  if(!data||!data.length){document.getElementById('contentArea').innerHTML='<div class="loading">No content</div>';return;}
+  // data কে window এ রাখব যাতে onclick এ access করা যায়
+  window._gridData=data;
+  window._gridSource=source;
+  let html=`<div style="padding:10px 15px 5px;font-size:15px;font-weight:bold">${title}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:5px 15px 80px;align-items:start">`;
+  data.forEach((m,i)=>{
+    if(i>0&&i%9===0){
+      html+=`</div>
+        <div style="margin:8px 15px;border-radius:8px;background:#1a1a1a;border:1px dashed #2a2a2a;height:80px;display:flex;align-items:center;justify-content:center;color:#555;font-size:12px">📢 Advertisement</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 15px;align-items:start">`;
+    }
+    const img=source==='sheet'?posterUrl(m.poster):m.poster;
+    html+=`<div style="cursor:pointer;width:100%;overflow:hidden" data-idx="${i}" onclick="gridClick(${i})">
+      <div style="width:100%;padding-top:150%;position:relative;border-radius:7px;overflow:hidden;background:#252525">
+        <img style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover" src="${img}" onerror="this.style.background='#333'" loading="lazy" alt="">
+      </div>
+      <div style="font-size:10px;margin-top:4px;text-align:center;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%">${m.title}</div>
+    </div>`;
+  });
+  html+='</div>';
+  document.getElementById('contentArea').innerHTML=html;
+}
+
+function gridClick(idx){
+  const m=window._gridData[idx];
+  if(!m)return;
+  if(window._gridSource==='sheet')openPlayer(m);
+  else openPlayerTMDB(m);
+}
+
+function forYouClick(idx){
+  const m=window._forYouData&&window._forYouData[idx];
+  if(!m)return;
+  openPlayerTMDB(m);
+}
+
+function relClick(idx){
+  const m=window._relData&&window._relData[idx];
+  if(!m)return;
+  if(window._relSource==='sheet')openPlayer(m);
+  else openPlayerTMDB(m);
+}
+
+function renderSheetSection(data,title){renderGrid(data,title,'sheet');}
+function renderTMDBGrid(data,title){renderGrid(data,title,'tmdb');}
+
+function startDownload(dlUrl){
+  if(dlUrl){
+    // Google Drive direct download
+    const a=document.createElement('a');
+    a.href=dlUrl;
+    a.target='_blank';
+    a.download='';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return;
+  }
+  // TMDB/streaming মুভি — ad দেখাই
+  showAd(()=>alert('Download: '+document.getElementById('plTitle').textContent));
+}
+function shareMovie(){
+  const t=document.getElementById('plTitle').textContent;
+  if(navigator.share)navigator.share({title:t,url:window.location.href,text:'Watch '+t+' on Movie App!'});
+  else alert('Share: '+window.location.href);
+}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+  document.getElementById(id).classList.add('show');
+  document.querySelectorAll('.n-item').forEach(n=>n.classList.remove('on'));
+  if(id==='historyPage'){
+    document.getElementById('n-history').classList.add('on');
+    const hHtml=hist.length?hist.map(m=>`
+      <div style="cursor:pointer" onclick='openPlayerTMDB(${JSON.stringify(m).replace(/'/g,"&#39;")})'>
+        <img style="width:100%;aspect-ratio:2/3;border-radius:7px;object-fit:cover;background:#252525;display:block" src="${m.poster||''}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
+        <div style="font-size:10px;margin-top:3px;text-align:center;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.title}</div>
+      </div>`).join(''):'<div style="color:#555;text-align:center;padding:30px;grid-column:1/-1">No history</div>';
+    document.getElementById('histGrid').innerHTML=hHtml;
+  }
+  if(id==='downloadPage')document.getElementById('n-download').classList.add('on');
+  if(id==='brokenPage'){
+    const broken=JSON.parse(localStorage.getItem('broken')||'[]');
+    document.getElementById('brokenList').innerHTML=broken.length?
+      broken.map(b=>`<div class="broken-item">
+        <div class="broken-title">${b.title}</div>
+        <div class="broken-count">⚠️ ${b.count} report</div>
+      </div>`).join(''):
+      '<div class="loading">No reports yet ✅</div>';
+  }
+}
+
+function closePage(id){
+  document.getElementById(id).classList.remove('show');
+  if(id==='playerPage'){
+    document.getElementById('vFrame').src='';
+    document.getElementById('vidWrap').style.filter='';
+    clearInterval(midAdTimer);
+    resetServers();
+  }
+}
+
+function goHome(){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+  document.querySelectorAll('.n-item').forEach(n=>n.classList.remove('on'));
+  document.getElementById('n-home').classList.add('on');
+  clearInterval(midAdTimer);
+  loadHome();
+}
+
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('show');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
+function closePopup(){document.getElementById('popupAd').style.display='none';}
+
+function showAd(cb){
+  const ad=document.getElementById('fsAd');
+  ad.classList.add('show');
+  let c=5;
+  const cn=document.getElementById('adCount');
+  const sk=document.getElementById('skipBtn');
+  sk.style.display='none';
+  cn.textContent=c+'s';
+  window._adCb=cb;
+  const t=setInterval(()=>{
+    c--;
+    if(c>0)cn.textContent=c+'s';
+    else{clearInterval(t);cn.textContent='';sk.style.display='inline-block';}
+  },1000);
+}
+function closeAd(){
+  document.getElementById('fsAd').classList.remove('show');
+  if(window._adCb){window._adCb();window._adCb=null;}
+}
+
+window.addEventListener('scroll',()=>{
+  document.getElementById('header').classList.toggle('scrolled',window.scrollY>50);
+});
+
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}
+
+loadHome();
+</script>
+</body>
+</html>
