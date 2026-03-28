@@ -410,10 +410,7 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
     <div class="ep-row" id="epRow"></div>
   </div>
   <!-- ===== Player Ad এখানে ===== -->
-  <div class="player-ad">
-    <script async="async" data-cfasync="false" src="https://pl29003901.profitablecpmratenetwork.com/7918727462c3ee6932174f083d8c6a56/invoke.js"></script>
-    <div id="container-7918727462c3ee6932174f083d8c6a56"></div>
-  </div>
+  <div class="player-ad" id="playerAdSlot"></div>
   <div class="rel-wrap">
     <div class="rel-title">Related</div>
     <div id="relGrid" class="rel-grid"></div>
@@ -1827,6 +1824,22 @@ function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
   document.getElementById(id).classList.add('show');
   document.querySelectorAll('.n-item').forEach(n=>n.classList.remove('on'));
+  // Player page খুললে banner inject করি
+  if(id==='playerPage'){
+    var slot=document.getElementById('playerAdSlot');
+    if(slot&&!slot.dataset.adLoaded){
+      slot.dataset.adLoaded='1';
+      slot.innerHTML='';
+      var div=document.createElement('div');
+      div.id='container-7918727462c3ee6932174f083d8c6a56';
+      slot.appendChild(div);
+      var s=document.createElement('script');
+      s.async=true;
+      s.setAttribute('data-cfasync','false');
+      s.src='https://pl29003901.profitablecpmratenetwork.com/7918727462c3ee6932174f083d8c6a56/invoke.js';
+      slot.appendChild(s);
+    }
+  }
   if(id==='historyPage'){
     document.getElementById('n-history').classList.add('on');
     const hHtml=hist.length?hist.map(m=>`
