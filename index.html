@@ -410,7 +410,7 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
     <div class="ep-row" id="epRow"></div>
   </div>
   <!-- ===== Player Ad এখানে ===== -->
-  <div class="player-ad" id="playerAdSlot">
+  <div class="player-ad">
     <script async="async" data-cfasync="false" src="https://pl29003901.profitablecpmratenetwork.com/7918727462c3ee6932174f083d8c6a56/invoke.js"></script>
     <div id="container-7918727462c3ee6932174f083d8c6a56"></div>
   </div>
@@ -1176,17 +1176,19 @@ async function loadHome(){
   }
 }
 
-var _adsterraLoaded=false;
 function adBannerHtml(){
-  if(!_adsterraLoaded){
-    _adsterraLoaded=true;
+  // In-Page Push ad dynamically load করি
+  var id='ad_'+Math.random().toString(36).substr(2,9);
+  setTimeout(()=>{
     var s=document.createElement('script');
-    s.async=true;
-    s.setAttribute('data-cfasync','false');
-    s.src='https://pl29003901.profitablecpmratenetwork.com/7918727462c3ee6932174f083d8c6a56/invoke.js';
-    document.body.appendChild(s);
-  }
-  return`<div class="ad-banner-home"><div class="ad-banner-home-inner"><span style="font-size:24px">📢</span><span>Advertisement</span></div></div>`;
+    s.dataset.zone='10798821';
+    s.src='https://nap5k.com/tag.min.js';
+    var el=document.getElementById(id);
+    if(el)el.appendChild(s);
+  },100);
+  return`<div class="ad-banner-home" id="${id}">
+    <div class="ad-banner-home-inner"><span style="font-size:24px">📢</span><span>Advertisement</span></div>
+  </div>`;
 }
 
 function setBannerTMDB(items){
@@ -1221,6 +1223,17 @@ async function openPlayerTMDB(m){
   if(dlBtn)dlBtn.style.display='none';
   const srvWrap=document.querySelector('.server-wrap');
   if(srvWrap)srvWrap.style.display='block';
+  // Player ad slot এ banner load
+  setTimeout(()=>{
+    var slot=document.getElementById('playerAdSlot');
+    if(slot&&!slot.dataset.loaded){
+      slot.dataset.loaded='1';
+      var s=document.createElement('script');
+      s.dataset.zone='10798821';
+      s.src='https://nap5k.com/tag.min.js';
+      slot.appendChild(s);
+    }
+  },1000);
   document.getElementById('plTitle').textContent=m.title;
   document.getElementById('pHeadTitle').textContent=m.title;
   document.getElementById('plMeta').textContent=`${m.category} • ${m.year}`;
@@ -1885,7 +1898,6 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}
 
 loadHome();
 </script>
-<!-- Adsterra Popunder -->
 <script src="https://pl28991110.profitablecpmratenetwork.com/4b/01/54/4b015436630eab445613cfb129a60292.js"></script>
 </body>
 </html>
