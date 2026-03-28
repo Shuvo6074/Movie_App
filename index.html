@@ -410,7 +410,7 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
     <div class="ep-row" id="epRow"></div>
   </div>
   <!-- ===== Player Ad এখানে ===== -->
-  <div class="player-ad"><div class="player-ad-inner">📢 Advertisement</div></div>
+  <div class="player-ad" id="playerAdSlot"><div class="player-ad-inner">📢 Advertisement</div></div>
   <div class="rel-wrap">
     <div class="rel-title">Related</div>
     <div id="relGrid" class="rel-grid"></div>
@@ -571,22 +571,17 @@ setTimeout(()=>{
     sp.style.display='none';
     document.getElementById('popupAd').style.display='flex';
     setTimeout(closePopup,5000);
-    // Monetag — splash সরার পরে load করি
-    try{
-      // Multitag
-      (function(d,z,s){s.src='https://'+d+'/401/'+z;
-        try{(document.body||document.documentElement).appendChild(s)}catch(e){}
-      })('3nbf4.com',10798762,document.createElement('script'));
-      // Push Notifications
-      var ps=document.createElement('script');
-      ps.src='https://5gvci.com/act/files/tag.min.js?z=10798820';
-      ps.async=true;document.body.appendChild(ps);
-      // Popunder
-      var po=document.createElement('script');
-      po.dataset.zone='10798818';
-      po.src='https://al5sm.com/tag.min.js';
-      document.body.appendChild(po);
-    }catch(e){}
+    // Monetag ads — splash সরার পরে load
+    var s1=document.createElement('script');
+    s1.src='https://5gvci.com/act/files/tag.min.js?z=10798820';
+    s1.async=true;document.body.appendChild(s1);
+    var s2=document.createElement('script');
+    s2.dataset.zone='10798818';
+    s2.src='https://al5sm.com/tag.min.js';
+    document.body.appendChild(s2);
+    var s3=document.createElement('script');
+    s3.src='https://3nbf4.com/401/10798762';
+    s3.async=true;document.body.appendChild(s3);
   },500);
 },3000);
 
@@ -1190,8 +1185,16 @@ async function loadHome(){
 }
 
 function adBannerHtml(){
-  return`<div class="ad-banner-home">
-    <!-- ===== Home Ad কোড এখানে ===== -->
+  // In-Page Push ad dynamically load করি
+  var id='ad_'+Math.random().toString(36).substr(2,9);
+  setTimeout(()=>{
+    var s=document.createElement('script');
+    s.dataset.zone='10798821';
+    s.src='https://nap5k.com/tag.min.js';
+    var el=document.getElementById(id);
+    if(el)el.appendChild(s);
+  },100);
+  return`<div class="ad-banner-home" id="${id}">
     <div class="ad-banner-home-inner"><span style="font-size:24px">📢</span><span>Advertisement</span></div>
   </div>`;
 }
@@ -1223,11 +1226,22 @@ async function openPlayerTMDB(m){
   if(typeof m==='string')m=JSON.parse(m);
   curMovie=m;
   resetServers();
-  // TMDB মুভিতে download নেই, server switcher দেখাও
+  // TMDB মুভিতে download বাটন hide
   const dlBtn=document.getElementById('dlBtn');
-  if(dlBtn){dlBtn.style.display='flex';dlBtn.onclick=()=>showAd(()=>alert('Download not available for streaming movies'));}
+  if(dlBtn)dlBtn.style.display='none';
   const srvWrap=document.querySelector('.server-wrap');
   if(srvWrap)srvWrap.style.display='block';
+  // Player ad slot এ banner load
+  setTimeout(()=>{
+    var slot=document.getElementById('playerAdSlot');
+    if(slot&&!slot.dataset.loaded){
+      slot.dataset.loaded='1';
+      var s=document.createElement('script');
+      s.dataset.zone='10798821';
+      s.src='https://nap5k.com/tag.min.js';
+      slot.appendChild(s);
+    }
+  },1000);
   document.getElementById('plTitle').textContent=m.title;
   document.getElementById('pHeadTitle').textContent=m.title;
   document.getElementById('plMeta').textContent=`${m.category} • ${m.year}`;
