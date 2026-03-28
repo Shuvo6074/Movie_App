@@ -180,6 +180,16 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
 .r-title{font-size:10px;margin-top:4px;text-align:center;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
 .rel-ad-wrap{margin:8px 0;border-radius:8px;background:#1a1a1a;border:1px dashed #2a2a2a;height:80px;display:flex;align-items:center;justify-content:center;color:#555;font-size:12px;grid-column:1/-1}
 
+/* ===== Server Switcher ===== */
+.server-wrap{padding:10px 15px 5px}
+.server-label{font-size:12px;color:#888;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.srv-status{font-size:11px;color:#e50914}
+.server-row{display:flex;gap:8px;flex-wrap:wrap}
+.srv-btn{background:#1e1e1e;border:1px solid #333;color:rgba(255,255,255,0.6);font-size:12px;cursor:pointer;padding:7px 16px;border-radius:8px;transition:all 0.2s;font-weight:500}
+.srv-btn.on{background:#e50914;border-color:#e50914;color:#fff;font-weight:700}
+.srv-btn.trying{border-color:#888;color:#aaa;animation:srvpulse 0.7s infinite alternate}
+@keyframes srvpulse{from{opacity:0.4}to{opacity:1}}
+
 /* Broken Movies Page */
 .broken-list{padding:15px;padding-bottom:80px}
 .broken-item{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;background:#1a1a1a;border-radius:8px;margin-bottom:8px}
@@ -361,7 +371,7 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
     <div class="p-head-title" id="pHeadTitle"></div>
   </div>
   <div class="vid-wrap" id="vidWrap">
-    <iframe id="vFrame" allowfullscreen allow="autoplay" style="pointer-events:auto"></iframe>
+    <iframe id="vFrame" allowfullscreen allow="autoplay; fullscreen" style="pointer-events:auto" onload="onFrameLoad()"></iframe>
     <div class="gesture-layer" id="gestureLayer" style="display:none"></div>
     <div class="gesture-indicator" id="gestureIndicator"></div>
     <div class="vol-bar" id="volBar"><div class="vol-fill" id="volFill" style="height:80%"></div></div>
@@ -373,7 +383,7 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
     <div class="pl-rating" id="plRating"></div>
     <div class="pl-meta" id="plMeta"></div>
     <div class="action-row">
-      <button class="dl-btn" onclick="startDownload()">
+      <button class="dl-btn" id="dlBtn" onclick="startDownload()">
         <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
         Download
       </button>
@@ -384,6 +394,16 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
       <button class="report-btn" onclick="reportMovie()">🚨 Report</button>
     </div>
   </div>
+  <!-- ===== Server Switcher ===== -->
+  <div class="server-wrap">
+    <div class="server-label">🖥️ Server <span class="srv-status" id="srvStatus"></span></div>
+    <div class="server-row">
+      <button class="srv-btn on" id="srv1" onclick="switchServer(1,this)">Server 1</button>
+      <button class="srv-btn" id="srv2" onclick="switchServer(2,this)">Server 2</button>
+      <button class="srv-btn" id="srv3" onclick="switchServer(3,this)">Server 3</button>
+    </div>
+  </div>
+
   <div class="ep-wrap" id="epWrap" style="display:none">
     <div class="ep-label">📺 Season & Episodes</div>
     <div class="season-row" id="seasonRow"></div>
@@ -447,6 +467,101 @@ let vidsrcIds=new Set();
 const MID_AD_INTERVAL=15*60*1000;
 const MID_AD_DURATION=10;
 
+// ===== SERVER SYSTEM =====
+let curServer=1;
+let curSeason=1,curEpisode=1;
+let frameLoaded=false;
+
+// প্রতিটা server এর URL builder
+function srvUrl(n,type,id,s,e){
+  s=s||1;e=e||1;
+  if(n===1)return type==='tv'?`https://vidsrc.me/embed/tv?tmdb=${id}&season=${s}&episode=${e}`:`https://vidsrc.me/embed/movie?tmdb=${id}`;
+  if(n===2)return type==='tv'?`https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}`:`https://multiembed.mov/?video_id=${id}&tmdb=1`;
+  if(n===3)return type==='tv'?`https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`:`https://www.2embed.cc/embed/${id}`;
+  return'';
+}
+
+// সব server একসাথে ping — যেটায় content আছে সেটায় play
+async function autoPick(type,id,s,e){
+  setSrvStatus('🔍 খুঁজছি...');
+  document.querySelectorAll('.srv-btn').forEach(b=>{b.classList.remove('on');b.classList.add('trying');});
+
+  // প্রতিটা server fetch করে check — যেটা 200 দেবে সেটা জিতবে
+  const checks=[1,2,3].map(n=>
+    fetch(srvUrl(n,type,id,s,e),{method:'HEAD',mode:'no-cors',cache:'no-store'})
+      .then(()=>n).catch(()=>n) // no-cors সবসময় opaque — তাই order অনুযায়ী ফলাফল
+  );
+
+  // সব একসাথে race — প্রথমটা যে resolve করে সেটা
+  // কিন্তু no-cors এ error জানা যায় না, তাই ordered fallback ব্যবহার করি:
+  // Server 1 → 2 → 3 parallel load করি, যেটা প্রথমে সফলভাবে load হয় সেটা active রাখি
+
+  playOnServer(1,type,id,s,e);
+  // 5s পর যদি frame load না হয় → Server 2
+  let t1=setTimeout(()=>{
+    if(!frameLoaded){
+      setSrvStatus('Server 2 চেষ্টা করছি...');
+      playOnServer(2,type,id,s,e);
+      // আরো 5s পর → Server 3
+      let t2=setTimeout(()=>{
+        if(!frameLoaded){
+          setSrvStatus('Server 3 চেষ্টা করছি...');
+          playOnServer(3,type,id,s,e);
+          setTimeout(()=>setSrvStatus(''),4000);
+        }
+      },5000);
+      window._srvT2=t2;
+    }
+  },5000);
+  window._srvT1=t1;
+}
+
+function playOnServer(n,type,id,s,e){
+  frameLoaded=false;
+  curServer=n;
+  document.querySelectorAll('.srv-btn').forEach((b,i)=>{
+    b.classList.remove('on','trying');
+    if(i+1===n)b.classList.add('on');
+  });
+  document.getElementById('vFrame').src=srvUrl(n,type,id,s,e);
+}
+
+function onFrameLoad(){
+  const src=document.getElementById('vFrame').src;
+  if(!src||src==='about:blank')return;
+  frameLoaded=true;
+  clearTimeout(window._srvT1);clearTimeout(window._srvT2);
+  setSrvStatus('');
+}
+
+function setSrvStatus(msg){
+  const el=document.getElementById('srvStatus');
+  if(el)el.textContent=msg;
+}
+
+function switchServer(n,btn){
+  clearTimeout(window._srvT1);clearTimeout(window._srvT2);
+  frameLoaded=false;
+  document.querySelectorAll('.srv-btn').forEach(b=>b.classList.remove('on','trying'));
+  if(btn)btn.classList.add('on');
+  curServer=n;
+  setSrvStatus('');
+  if(!curMovie)return;
+  if(curMovie.source==='sheet'){document.getElementById('vFrame').src=getVideoUrl(curMovie);return;}
+  const type=curMovie.type==='series'?'tv':'movie';
+  document.getElementById('vFrame').src=srvUrl(n,type,curMovie.tmdb_id,curSeason,curEpisode);
+}
+
+function resetServers(){
+  clearTimeout(window._srvT1);clearTimeout(window._srvT2);
+  frameLoaded=false;curServer=1;curSeason=1;curEpisode=1;
+  document.querySelectorAll('.srv-btn').forEach((b,i)=>{
+    b.classList.remove('on','trying');
+    if(i===0)b.classList.add('on');
+  });
+  setSrvStatus('');
+}
+
 // ===== SPLASH =====
 window.addEventListener('load',()=>{
   setTimeout(()=>{
@@ -456,16 +571,8 @@ window.addEventListener('load',()=>{
       sp.style.display='none';
       document.getElementById('popupAd').style.display='flex';
       setTimeout(closePopup,5000);
-      // Monetag — splash সরার পরে load
-      (function(d,z,s){s.src='https://'+d+'/401/'+z;try{(document.body||document.documentElement).appendChild(s)}catch(e){}})(
-        '3nbf4.com',10798762,document.createElement('script'));
-      const ps=document.createElement('script');
-      ps.src='https://5gvci.com/act/files/tag.min.js?z=10798820';
-      ps.async=true;document.body.appendChild(ps);
-      (function(s){s.dataset.zone='10798818';s.src='https://al5sm.com/tag.min.js';})(
-        document.body.appendChild(document.createElement('script')));
     },500);
-  },3000);
+  },5000);
 });
 
 // ===== VIDSRC — শুধু play হওয়া মুভি =====
@@ -631,7 +738,7 @@ async function loadLangGrid(lang,catLabel){
       const pages=await Promise.all([1,2,3].map(p=>
         fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=${lang}&sort_by=vote_count.desc&include_adult=false&page=${p}`).then(r=>r.json())
       ));
-      const discovered=pages.flatMap(d=>(d.results||[])).filter(m=>m.poster_path).map(m=>({
+      const discovered=pages.flatMap(d=>(d.results||[])).filter(m=>m.poster_path&&m.original_language===lang).map(m=>({
         title:m.title||m.name,poster:IMG+m.poster_path,
         backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
         year:(m.release_date||'').substr(0,4),
@@ -729,25 +836,21 @@ async function loadIndian(){
   }
 }
 
-// ===== 18+ — vidsrc থেকে সরাসরি adult মুভি =====
+// ===== 18+ Section — Romance/Thriller genre, সব server try করবে =====
 async function loadAdult(){
   document.getElementById('contentArea').innerHTML='<div class="loading">Loading...</div>';
   try{
-    // vidsrc এর adult/latest list থেকে আনব
-    const pages=await Promise.all([1,2,3,4,5].map(p=>
-      fetch(`https://vidsrc.xyz/movies/latest/page-${p}.json`).then(r=>r.json()).catch(()=>({result:[]}))
-    ));
-    const allIds=pages.flatMap(d=>(d.result||[])).map(m=>({tmdb:String(m.tmdb_id||''),imdb:m.imdb_id||''})).filter(x=>x.tmdb||x.imdb);
-
-    // TMDB থেকে details আনব — adult=true কিনা check করব
-    const details=await Promise.all(
-      allIds.slice(0,50).map(({tmdb})=>
-        tmdb?fetch(`${TMDB}/movie/${tmdb}?api_key=${TMDB_KEY}&include_adult=true`).then(r=>r.json()).catch(()=>null):null
-      )
-    );
-
-    const movies=details
-      .filter(m=>m&&m.poster_path&&m.adult===true)
+    // TMDB থেকে Romance + Erotic Thriller genre আনি
+    const [r1,r2,r3,r4,r5]=await Promise.all([
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=popularity.desc&include_adult=true&page=1`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=popularity.desc&include_adult=true&page=2`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749,53&sort_by=vote_count.desc&include_adult=true&page=1`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=vote_average.desc&vote_count.gte=50&include_adult=true&page=1`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=revenue.desc&include_adult=true&page=1`).then(r=>r.json()),
+    ]);
+    const all=[r1,r2,r3,r4,r5].flatMap(d=>(d.results||[]))
+      .filter(m=>m.poster_path)
+      .filter((m,i,a)=>a.findIndex(x=>x.id===m.id)===i)
       .map(m=>({
         title:m.title,poster:IMG+m.poster_path,
         backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
@@ -755,74 +858,37 @@ async function loadAdult(){
         rating:m.vote_average?m.vote_average.toFixed(1):'',
         type:'movie',tmdb_id:m.id,category:'18+'
       }));
-
-    if(movies.length){
-      renderGrid(movies,'🔞 18+ Section','tmdb');
+    if(all.length){
+      renderGrid(all,'🔞 18+ Section','tmdb');
     }else{
-      // Fallback — TMDB adult content সরাসরি
-      const r=await fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&include_adult=true&sort_by=vote_count.desc&vote_count.gte=100&with_genres=10749`);
-      const d=await r.json();
-      const fallback=(d.results||[]).filter(m=>m.poster_path&&m.adult===true).map(m=>({
-        title:m.title,poster:IMG+m.poster_path,
-        year:(m.release_date||'').substr(0,4),
-        rating:m.vote_average?m.vote_average.toFixed(1):'',
-        type:'movie',tmdb_id:m.id,category:'18+'
-      }));
-      if(fallback.length){
-        renderGrid(fallback,'🔞 18+ Section','tmdb');
-      }else{
-        document.getElementById('contentArea').innerHTML='<div class="loading" style="color:#e50914;padding:40px 20px;text-align:center">18+ content is not available at the moment.<br><br>Try the Adult category or use Search.</div>';
-      }
+      document.getElementById('contentArea').innerHTML='<div class="loading" style="color:#e50914;padding:40px 20px;text-align:center">18+ content not available at the moment.</div>';
     }
   }catch(e){
     document.getElementById('contentArea').innerHTML='<div class="loading">Error loading.</div>';
   }
 }
 
-// ===== Adult — শুধু adult=true মুভি, canPlay() check =====
+// ===== Adult Section — Drama+Romance, সব server try করবে =====
 async function loadAdultContent(){
   document.getElementById('contentArea').innerHTML='<div class="loading">Loading...</div>';
   try{
-    // vidsrc এর adult list থেকে আনব
-    const pages=await Promise.all([1,2,3].map(p=>
-      fetch(`https://vidsrc.xyz/movies/latest/page-${p}.json`).then(r=>r.json()).catch(()=>({result:[]}))
-    ));
-    const ids=[...new Set(pages.flatMap(d=>(d.result||[])).map(m=>String(m.tmdb_id)).filter(Boolean))].slice(0,60);
-
-    if(ids.length){
-      const details=await Promise.all(
-        ids.map(id=>fetch(`${TMDB}/movie/${id}?api_key=${TMDB_KEY}&include_adult=true`).then(r=>r.json()).catch(()=>null))
-      );
-      // শুধু adult=true মুভি রাখব
-      const adultMovies=details
-        .filter(m=>m&&m.poster_path&&m.adult===true)
-        .map(m=>({
-          title:m.title,poster:IMG+m.poster_path,
-          year:(m.release_date||'').substr(0,4),
-          rating:m.vote_average?m.vote_average.toFixed(1):'',
-          type:'movie',tmdb_id:m.id,category:'Adult'
-        }));
-
-      if(adultMovies.length>=3){
-        renderGrid(adultMovies,'🔞 Adult','tmdb');
-        return;
-      }
-    }
-
-    // Fallback — TMDB adult content
-    const r=await fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&include_adult=true&sort_by=vote_count.desc&vote_count.gte=10&page=1`);
-    const d=await r.json();
-    const movies=(d.results||[])
-      .filter(m=>m.poster_path&&m.adult===true)
+    const [r1,r2,r3]=await Promise.all([
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=18,10749&sort_by=popularity.desc&include_adult=true&page=1`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=18,10749&sort_by=vote_count.desc&include_adult=true&page=1`).then(r=>r.json()),
+      fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=vote_count.desc&include_adult=true&vote_count.gte=100&page=1`).then(r=>r.json()),
+    ]);
+    const all=[r1,r2,r3].flatMap(d=>(d.results||[]))
+      .filter(m=>m.poster_path)
+      .filter((m,i,a)=>a.findIndex(x=>x.id===m.id)===i)
       .map(m=>({
         title:m.title,poster:IMG+m.poster_path,
+        backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
         year:(m.release_date||'').substr(0,4),
         rating:m.vote_average?m.vote_average.toFixed(1):'',
         type:'movie',tmdb_id:m.id,category:'Adult'
       }));
-
-    if(movies.length){
-      renderGrid(movies,'🔞 Adult','tmdb');
+    if(all.length){
+      renderGrid(all,'🔞 Adult','tmdb');
     }else{
       document.getElementById('contentArea').innerHTML='<div class="loading" style="color:#e50914">Adult content not available at the moment.</div>';
     }
@@ -892,23 +958,38 @@ function posterUrl(u){
   return'';
 }
 
+function getGdriveId(url){
+  if(!url)return null;
+  const m=url.match(/\/d\/([^/]+)/)||url.match(/[?&]id=([^&]+)/)||url.match(/open\?id=([^&]+)/);
+  return m?m[1]:null;
+}
+
 function getVideoUrl(m){
   if(m.imdb){
-    if(m.type==='series')return`https://vidsrc.xyz/embed/tv/${m.imdb}/${m.season||1}/${m.episode||1}`;
-    return`https://vidsrc.xyz/embed/movie/${m.imdb}`;
+    if(m.type==='series')return`https://vidsrc.me/embed/tv?imdb=${m.imdb}&season=${m.season||1}&episode=${m.episode||1}`;
+    return`https://vidsrc.me/embed/movie?imdb=${m.imdb}`;
   }
   if(m.tmdb_id){
-    if(m.type==='series')return`https://vidsrc.xyz/embed/tv/${m.tmdb_id}`;
-    return`https://vidsrc.xyz/embed/movie/${m.tmdb_id}`;
+    if(m.type==='series')return`https://vidsrc.me/embed/tv?tmdb=${m.tmdb_id}`;
+    return`https://vidsrc.me/embed/movie?tmdb=${m.tmdb_id}`;
   }
   const v=m.video||'';
   if(!v)return'';
   const yt=v.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([^&\n?#]+)/);
   if(yt)return`https://www.youtube.com/embed/${yt[1]}?autoplay=1`;
-  const gd=v.match(/id=([^&]+)/)||v.match(/\/d\/([^/]+)/);
-  if(gd)return`https://drive.google.com/file/d/${gd[1]}/preview`;
+  const gdId=getGdriveId(v);
+  if(gdId)return`https://drive.google.com/file/d/${gdId}/preview`;
   if(v.includes('streamtape'))return v.replace('/v/','/e/');
   return v;
+}
+
+function getDownloadUrl(m){
+  const v=m.video||'';
+  const gdId=getGdriveId(v);
+  if(gdId)return`https://drive.google.com/uc?export=download&id=${gdId}`;
+  if(m.imdb||m.tmdb_id)return null; // streaming only
+  if(v&&!v.includes('youtube')&&!v.includes('youtu.be'))return v;
+  return null;
 }
 
 // ===== Home লোড =====
@@ -965,54 +1046,74 @@ async function loadHome(){
       if(!movies||!movies.length)return;
       html+=`<div class="section">
         <div class="sec-head"><div class="sec-title">${title}</div>${allFn?`<div class="sec-all" onclick="${allFn}">All ›</div>`:''}</div>
-        <div class="h-scroll">${movies.map(m=>`
-          <div class="m-card" onclick='openPlayerTMDB(${JSON.stringify(m).replace(/'/g,"&#39;")})'>
-            <img class="m-thumb" src="${m.poster}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
+        <div class="h-scroll">${movies.map(m=>{
+          const img=m.source==='sheet'?m.poster:m.poster;
+          const onclick=m.source==='sheet'
+            ?`openPlayer(${JSON.stringify(m).replace(/'/g,"&#39;")})`
+            :`openPlayerTMDB(${JSON.stringify(m).replace(/'/g,"&#39;")})`;
+          return`<div class="m-card" onclick='${onclick}'>
+            <img class="m-thumb" src="${img}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
             ${m.rating?`<div class="m-rating">⭐${m.rating}</div>`:''}
             <div class="m-title">${m.title}</div>
-          </div>`).join('')}
+          </div>`;
+        }).join('')}
         </div></div>`;
       secCount++;if(secCount%6===0)html+=adBannerHtml();
     }
 
-    // Sheet movies — My Collection (multi-category support)
-    if(allSheetData.length){
-      const sheetMovies=allSheetData.filter(d=>d.type==='movie'||d.type==='series');
-      const cats={};
-      sheetMovies.forEach(m=>{
-        // comma দিয়ে একাধিক category support
-        const catList=(m.category||'').split(',').map(c=>c.trim()).filter(Boolean);
-        catList.forEach(cat=>{
-          if(!cats[cat])cats[cat]=[];
-          cats[cat].push(m);
-        });
-      });
-      Object.keys(cats).forEach(cat=>{
-        if(!cats[cat].length)return;
-        html+=`<div class="section">
-          <div class="sec-head"><div class="sec-title">📁 ${cat}</div></div>
-          <div class="h-scroll">${cats[cat].map(m=>`
-            <div class="m-card" onclick="openPlayer(${esc(m)})">
-              <img class="m-thumb" src="${posterUrl(m.poster)}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
-              <div class="m-title">${m.title}</div>
-            </div>`).join('')}
-          </div></div>`;
-        secCount++;if(secCount%6===0)html+=adBannerHtml();
-      });
+    // (Sheet movies এখন উপরের TMDB sections এ merged হয়ে গেছে)
+
+    // Sheet movies — category অনুযায়ী TMDB section এ merge করি
+    function getSheetByCat(cat){
+      return allSheetData.filter(d=>{
+        const cats=(d.category||'').split(',').map(c=>c.trim());
+        return cats.some(c=>c.toLowerCase().includes(cat.toLowerCase()));
+      }).map(m=>({...m,source:'sheet',poster:posterUrl(m.poster)}));
+    }
+
+    // Sheet মুভি TMDB movies এ prepend করি (category match অনুযায়ী)
+    const sheetHollywood=getSheetByCat('Hollywood');
+    const sheetBangla=getSheetByCat('Bangla');
+    const sheetHindi=getSheetByCat('Hindi').concat(getSheetByCat('Bollywood'));
+    const sheetIndian=getSheetByCat('Indian');
+    const sheetKorean=getSheetByCat('Korean');
+    const sheetAnime=getSheetByCat('Anime');
+    const sheetSeries=getSheetByCat('Series').concat(getSheetByCat('Web Series'));
+
+    function mergedSec(title,sheetArr,tmdbArr,allFn){
+      const merged=[...sheetArr,...tmdbArr.filter(t=>!sheetArr.find(s=>s.title===t.title))];
+      addSec(title,merged,allFn);
     }
 
     addSec('🔥 Trending Today',trendMovies,`loadTMDB('movie','popular')`);
-    addSec('🎬 Popular Movies',popMovies,`loadTMDB('movie','popular')`);
+    mergedSec('🎬 Popular Movies',sheetHollywood,popMovies,`filterCat(null,'Hollywood')`);
     addSec('🆕 Now Playing',nowMovies,`loadTMDB('movie','now_playing')`);
     addSec('⭐ Top Rated',topMovies,`loadTMDB('movie','top_rated')`);
-    addSec('📺 Web Series',seriesData,`loadTMDB('tv','popular')`);
-    addSec('🎪 Bollywood Hindi',hindiMovies,'');
-    addSec('🇮🇳 Indian Movies',indianMovies,'');
-    addSec('🇰🇷 Korean Movies',koreanMovies,'');
+    mergedSec('📺 Web Series',sheetSeries,seriesData,`filterCat(null,'Web Series')`);
+    mergedSec('🎪 Bollywood Hindi',sheetHindi,hindiMovies,`filterCat(null,'Hindi')`);
+    mergedSec('🇮🇳 Indian Movies',sheetIndian,indianMovies,`filterCat(null,'Indian')`);
+    mergedSec('🇰🇷 Korean Movies',sheetKorean,koreanMovies,`filterCat(null,'Korean')`);
+    mergedSec('🎌 Bangla',sheetBangla,[],`filterCat(null,'Bangla')`);
     addSec('💥 Action',actionMovies,'');
     addSec('😂 Comedy',comedyMovies,'');
     addSec('😱 Thriller',thrillerMovies,'');
     addSec('👻 Horror',horrorMovies,'');
+
+    // Sheet custom categories (যেগুলো উপরে নেই)
+    const knownCats=['hollywood','bangla','hindi','bollywood','indian','korean','anime','series','web series','movie'];
+    const customCats={};
+    allSheetData.filter(d=>d.type==='movie'||d.type==='series').forEach(m=>{
+      (m.category||'').split(',').map(c=>c.trim()).filter(Boolean).forEach(cat=>{
+        if(!knownCats.includes(cat.toLowerCase())){
+          if(!customCats[cat])customCats[cat]=[];
+          customCats[cat].push({...m,source:'sheet',poster:posterUrl(m.poster)});
+        }
+      });
+    });
+    Object.keys(customCats).forEach(cat=>{
+      if(customCats[cat].length)addSec(`📁 ${cat}`,customCats[cat],'');
+      secCount++;if(secCount%6===0)html+=adBannerHtml();
+    });
 
     // Courses — YouTube style wide (ফাঁকা থাকবে, course video আসলে দেখাবে)
     const bangla=allSheetData.filter(d=>d.type==='bangla_course');
@@ -1106,20 +1207,25 @@ function esc(m){return JSON.stringify(m).replace(/"/g,'&quot;')}
 async function openPlayerTMDB(m){
   if(typeof m==='string')m=JSON.parse(m);
   curMovie=m;
+  resetServers();
+  // TMDB মুভিতে download নেই, server switcher দেখাও
+  const dlBtn=document.getElementById('dlBtn');
+  if(dlBtn){dlBtn.style.display='flex';dlBtn.onclick=()=>showAd(()=>alert('Download not available for streaming movies'));}
+  const srvWrap=document.querySelector('.server-wrap');
+  if(srvWrap)srvWrap.style.display='block';
   document.getElementById('plTitle').textContent=m.title;
   document.getElementById('pHeadTitle').textContent=m.title;
   document.getElementById('plMeta').textContent=`${m.category} • ${m.year}`;
   document.getElementById('plRating').textContent=m.rating?'⭐ '+m.rating+' / 10':'';
 
+  const vtype=m.type==='series'?'tv':'movie';
   if(m.type==='series'){
-    // TV Series — Season/Episode লোড
     document.getElementById('epWrap').style.display='block';
-    document.getElementById('vFrame').src=`https://vidsrc.xyz/embed/tv/${m.tmdb_id}/1/1`;
     loadSeasons(m.tmdb_id);
   } else {
     document.getElementById('epWrap').style.display='none';
-    document.getElementById('vFrame').src=`https://vidsrc.xyz/embed/movie/${m.tmdb_id}`;
   }
+  autoPick(vtype,m.tmdb_id,1,1);
 
   // Related — সব ক্যাটাগরিতে নায়কের মুভি + একই genre
   try{
@@ -1221,19 +1327,39 @@ async function loadEpisodes(tmdbId,season,btn){
 function playEpisode(tmdbId,season,episode,btn){
   document.querySelectorAll('.ep-btn').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
-  document.getElementById('vFrame').src=`https://vidsrc.xyz/embed/tv/${tmdbId}/${season}/${episode}`;
+  curSeason=season;curEpisode=episode;
+  clearTimeout(window._srvT1);clearTimeout(window._srvT2);
+  autoPick('tv',tmdbId,season,episode);
 }
 
 // ===== Sheet Player =====
 function openPlayer(m){
   if(typeof m==='string')m=JSON.parse(m);
   curMovie=m;
-  document.getElementById('vFrame').src=getVideoUrl(m);
+  resetServers();
+  const videoUrl=getVideoUrl(m);
+  const dlUrl=getDownloadUrl(m);
+
+  document.getElementById('vFrame').src=videoUrl;
   document.getElementById('plTitle').textContent=m.title;
   document.getElementById('pHeadTitle').textContent=m.title;
-  document.getElementById('plMeta').textContent=`${m.category} • ${m.year}`;
+  document.getElementById('plMeta').textContent=`${m.category||''} • ${m.year||''}`;
   document.getElementById('plRating').textContent='';
   document.getElementById('epWrap').style.display='none';
+
+  // Download button — Google Drive হলে সরাসরি download, নইলে hide
+  const dlBtn=document.getElementById('dlBtn');
+  if(dlUrl){
+    dlBtn.style.display='flex';
+    dlBtn.onclick=()=>startDownload(dlUrl);
+  }else{
+    dlBtn.style.display='none';
+  }
+
+  // Server buttons — Google Drive হলে লুকাও (server switch দরকার নেই)
+  const srvWrap=document.querySelector('.server-wrap');
+  if(srvWrap)srvWrap.style.display=dlUrl?'none':'block';
+
   const rel=allSheetData.filter(x=>x.category===m.category&&x.title!==m.title).slice(0,24);
   window._relData=rel;
   window._relSource='sheet';
@@ -1361,13 +1487,17 @@ async function doSearch(q){
   if(!q){res.innerHTML='';return;}
   res.innerHTML='<div class="loading">Searching...</div>';
   try{
+    // Sheet থেকে আগে search করি
+    const sheetResults=allSheetData.filter(m=>
+      m.title&&m.title.toLowerCase().includes(q.toLowerCase())
+    ).slice(0,20);
+
     const r=await fetch(`${TMDB}/search/multi?api_key=${TMDB_KEY}&query=${encodeURIComponent(q)}&include_adult=false`);
     const data=await r.json();
-    if(!data.results||!data.results.length){res.innerHTML='<div class="loading">No results found</div>';return;}
 
     // Actor/Person থাকলে তার মুভি আনব
-    const person=data.results.find(m=>m.media_type==='person'&&m.profile_path);
-    if(person){
+    const person=(data.results||[]).find(m=>m.media_type==='person'&&m.profile_path);
+    if(person&&!sheetResults.length){
       res.innerHTML=`<div style="display:flex;align-items:center;gap:12px;padding:15px;background:#1a1a1a;margin:10px 15px;border-radius:10px">
         <img src="${IMG+person.profile_path}" style="width:60px;height:60px;border-radius:50%;object-fit:cover">
         <div>
@@ -1419,31 +1549,53 @@ async function doSearch(q){
       return;
     }
 
-    // সাধারণ movie/series search
-    const found=data.results.filter(m=>m.poster_path&&m.media_type!=='person');
-    if(!found.length){res.innerHTML='<div class="loading">No results found</div>';return;}
-    window._searchMovies=found.map(m=>({
-      title:m.title||m.name,
-      poster:IMG+m.poster_path,
-      backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
-      year:(m.release_date||m.first_air_date||'').substr(0,4),
-      rating:m.vote_average?m.vote_average.toFixed(1):'',
-      type:m.media_type==='tv'?'series':'movie',
-      tmdb_id:m.id,
-      category:m.media_type==='tv'?'Web Series':'Hollywood'
-    }));
-    let html='<div class="search-grid">';
-    found.forEach((m,i)=>{
-      if(i>0&&i%9===0){
-        html+=`</div><div class="ad-search"><div class="ad-search-inner"><span style="font-size:24px">📢</span><span>Advertisement</span></div></div><div class="search-grid">`;
-      }
-      html+=`<div class="sg-card" onclick="searchMovieClick(${i})">
-        <img class="sg-thumb" src="${IMG+m.poster_path}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title||m.name}">
-        <div class="sg-title">${m.title||m.name}</div>
-        <div class="sg-year">${(m.release_date||m.first_air_date||'').substr(0,4)}</div>
-      </div>`;
-    });
-    html+='</div>';
+    // সাধারণ movie/series search — Sheet + TMDB merge
+    const tmdbFound=(data.results||[]).filter(m=>m.poster_path&&m.media_type!=='person');
+
+    // Sheet results আগে দেখাই
+    let html='';
+    if(sheetResults.length){
+      html+=`<div style="padding:8px 15px 4px;font-size:12px;color:#e50914;font-weight:bold">📁 My Collection</div>
+        <div class="search-grid">`;
+      sheetResults.forEach((m,i)=>{
+        html+=`<div class="sg-card" onclick="openPlayer(${JSON.stringify(m).replace(/'/g,"&#39;")})">
+          <img class="sg-thumb" src="${posterUrl(m.poster)}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
+          <div class="sg-title">${m.title}</div>
+          <div class="sg-year" style="color:#e50914">⬇ Download</div>
+        </div>`;
+      });
+      html+='</div>';
+    }
+
+    if(tmdbFound.length){
+      html+=`<div style="padding:8px 15px 4px;font-size:12px;color:#888;font-weight:bold">🌐 Online</div>`;
+      window._searchMovies=tmdbFound.map(m=>({
+        title:m.title||m.name,
+        poster:IMG+m.poster_path,
+        backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
+        year:(m.release_date||m.first_air_date||'').substr(0,4),
+        rating:m.vote_average?m.vote_average.toFixed(1):'',
+        type:m.media_type==='tv'?'series':'movie',
+        tmdb_id:m.id,
+        category:m.media_type==='tv'?'Web Series':'Hollywood'
+      }));
+      html+='<div class="search-grid">';
+      tmdbFound.forEach((m,i)=>{
+        if(i>0&&i%9===0){
+          html+=`</div><div class="ad-search"><div class="ad-search-inner"><span style="font-size:24px">📢</span><span>Advertisement</span></div></div><div class="search-grid">`;
+        }
+        html+=`<div class="sg-card" onclick="searchMovieClick(${i})">
+          <img class="sg-thumb" src="${IMG+m.poster_path}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title||m.name}">
+          <div class="sg-title">${m.title||m.name}</div>
+          <div class="sg-year">${(m.release_date||m.first_air_date||'').substr(0,4)}</div>
+        </div>`;
+      });
+      html+='</div>';
+    }
+
+    if(!sheetResults.length&&!tmdbFound.length){
+      res.innerHTML='<div class="loading">No results found</div>';return;
+    }
     res.innerHTML=html;
   }catch(e){
     res.innerHTML='<div class="loading">Error searching.</div>';
@@ -1488,22 +1640,91 @@ function filterCat(btn,cat){
   document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
   if(cat==='All'){loadHome();return;}
-  // Sheet থেকে — comma দিয়ে লেখা category support করে
-  // যেমন "Indian,Action" → Indian ক্যাটাগরিতে ক্লিক করলে এই মুভিও আসবে
-  const f=allSheetData.filter(d=>{
+
+  // Sheet থেকে এই category র মুভি
+  const sheetMovies=allSheetData.filter(d=>{
     const cats=(d.category||'').split(',').map(c=>c.trim());
     return cats.includes(cat);
-  });
-  if(f.length){renderGrid(f,cat,'sheet');return;}
-  // Sheet এ না থাকলে TMDB থেকে আনি
-  if(cat==='Hollywood')loadTMDBGrid('movie','popular','Hollywood');
-  else if(cat==='Bangla')loadLangGrid('bn','🎬 Kolkata Bengali');
-  else if(cat==='Hindi')loadLangGrid('hi','Bollywood Hindi');
-  else if(cat==='Indian')loadIndian();
-  else if(cat==='Anime')loadLangGrid('ja','Anime');
-  else if(cat==='Korean')loadLangGrid('ko','Korean');
-  else if(cat==='Web Series')loadTMDBGrid('tv','popular','Web Series');
-  else loadTMDBGrid('movie','popular','Hollywood');
+  }).map(m=>({...m,source:'sheet'}));
+
+  // TMDB থেকেও আনি এবং Sheet এর সাথে merge করব
+  document.getElementById('contentArea').innerHTML='<div class="loading">Loading...</div>';
+
+  async function mergeAndRender(tmdbPromise,label){
+    try{
+      let tmdbMovies=[];
+      if(tmdbPromise){
+        const pages=await tmdbPromise;
+        tmdbMovies=pages.flatMap(d=>(d.results||[])).filter(m=>m.poster_path)
+          .filter((m,i,a)=>a.findIndex(x=>x.id===m.id)===i)
+          .map(m=>({
+            title:m.title||m.name,poster:IMG+m.poster_path,
+            backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
+            year:(m.release_date||m.first_air_date||'').substr(0,4),
+            rating:m.vote_average?m.vote_average.toFixed(1):'',
+            type:m.first_air_date?'series':'movie',
+            tmdb_id:m.id,category:cat,source:'tmdb'
+          })).filter(m=>canPlay(m));
+      }
+      // Sheet মুভি আগে, তারপর TMDB
+      const all=[...sheetMovies,...tmdbMovies];
+      if(!all.length){
+        document.getElementById('contentArea').innerHTML='<div class="loading">No content found</div>';
+        return;
+      }
+      // mixed source render
+      window._gridData=all;
+      window._gridSource='mixed';
+      let html=`<div style="padding:10px 15px 5px;font-size:15px;font-weight:bold">${label}</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:5px 15px 80px;align-items:start">`;
+      all.forEach((m,i)=>{
+        if(i>0&&i%9===0){
+          html+=`</div><div style="margin:8px 15px;border-radius:8px;background:#1a1a1a;border:1px dashed #2a2a2a;height:80px;display:flex;align-items:center;justify-content:center;color:#555;font-size:12px">📢 Advertisement</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 15px;align-items:start">`;
+        }
+        const img=m.source==='sheet'?posterUrl(m.poster):m.poster;
+        html+=`<div style="cursor:pointer;width:100%;overflow:hidden" data-idx="${i}" onclick="mixedGridClick(${i})">
+          <div style="width:100%;padding-top:150%;position:relative;border-radius:7px;overflow:hidden;background:#252525">
+            <img style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover" src="${img}" onerror="this.style.background='#333'" loading="lazy" alt="">
+          </div>
+          <div style="font-size:10px;margin-top:4px;text-align:center;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%">${m.title}</div>
+        </div>`;
+      });
+      html+='</div>';
+      document.getElementById('contentArea').innerHTML=html;
+    }catch(e){
+      // TMDB fail হলেও Sheet দেখাই
+      if(sheetMovies.length)renderGrid(sheetMovies,label,'sheet');
+      else document.getElementById('contentArea').innerHTML='<div class="loading">Error loading.</div>';
+    }
+  }
+
+  if(cat==='Hollywood')
+    mergeAndRender(Promise.all([1,2,3,4,5].map(p=>fetch(`${TMDB}/movie/popular?api_key=${TMDB_KEY}&language=en-US&page=${p}&include_adult=false`).then(r=>r.json()))),'🎬 Hollywood');
+  else if(cat==='Bangla')
+    mergeAndRender(Promise.all([1,2,3].map(p=>fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=bn&sort_by=vote_count.desc&include_adult=false&page=${p}`).then(r=>r.json()))),'🎬 Bangla');
+  else if(cat==='Hindi'||cat==='Bollywood')
+    mergeAndRender(Promise.all([1,2,3].map(p=>fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=hi&sort_by=popularity.desc&include_adult=false&page=${p}`).then(r=>r.json()))),'🎪 Bollywood Hindi');
+  else if(cat==='Indian')
+    mergeAndRender(Promise.all(['ta','te','kn','ml'].flatMap(l=>[1,2].map(p=>fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=${l}&sort_by=vote_count.desc&include_adult=false&page=${p}`).then(r=>r.json())))),'🇮🇳 Indian');
+  else if(cat==='Korean')
+    mergeAndRender(Promise.all([1,2,3].map(p=>fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=ko&sort_by=popularity.desc&include_adult=false&page=${p}`).then(r=>r.json()))),'🇰🇷 Korean');
+  else if(cat==='Anime')
+    mergeAndRender(Promise.all([1,2,3].map(p=>fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_original_language=ja&sort_by=popularity.desc&include_adult=false&page=${p}`).then(r=>r.json()))),'🎌 Anime');
+  else if(cat==='Web Series')
+    mergeAndRender(Promise.all([1,2,3].map(p=>fetch(`${TMDB}/tv/popular?api_key=${TMDB_KEY}&language=en-US&page=${p}&include_adult=false`).then(r=>r.json()))),'📺 Web Series');
+  else{
+    // Sheet only category (যেমন custom category)
+    if(sheetMovies.length)renderGrid(sheetMovies,cat,'sheet');
+    else document.getElementById('contentArea').innerHTML='<div class="loading">No content found</div>';
+  }
+}
+
+function mixedGridClick(idx){
+  const m=window._gridData&&window._gridData[idx];
+  if(!m)return;
+  if(m.source==='sheet')openPlayer(m);
+  else openPlayerTMDB(m);
 }
 function filterType(type){
   document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('on'));
@@ -1560,7 +1781,21 @@ function relClick(idx){
 function renderSheetSection(data,title){renderGrid(data,title,'sheet');}
 function renderTMDBGrid(data,title){renderGrid(data,title,'tmdb');}
 
-function startDownload(){showAd(()=>alert('Download: '+document.getElementById('plTitle').textContent));}
+function startDownload(dlUrl){
+  if(dlUrl){
+    // Google Drive direct download
+    const a=document.createElement('a');
+    a.href=dlUrl;
+    a.target='_blank';
+    a.download='';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return;
+  }
+  // TMDB/streaming মুভি — ad দেখাই
+  showAd(()=>alert('Download: '+document.getElementById('plTitle').textContent));
+}
 function shareMovie(){
   const t=document.getElementById('plTitle').textContent;
   if(navigator.share)navigator.share({title:t,url:window.location.href,text:'Watch '+t+' on Movie App!'});
@@ -1598,6 +1833,7 @@ function closePage(id){
     document.getElementById('vFrame').src='';
     document.getElementById('vidWrap').style.filter='';
     clearInterval(midAdTimer);
+    resetServers();
   }
 }
 
