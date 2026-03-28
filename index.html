@@ -410,7 +410,12 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
     <div class="ep-row" id="epRow"></div>
   </div>
   <!-- ===== Player Ad এখানে ===== -->
-  <div class="player-ad" id="playerAdSlot"></div>
+  <div class="player-ad" id="playerAdSlot">
+    <div class="player-ad-inner">
+      <script async="async" data-cfasync="false" src="https://pl29003901.profitablecpmratenetwork.com/7918727462c3ee6932174f083d8c6a56/invoke.js"></script>
+      <div id="container-7918727462c3ee6932174f083d8c6a56"></div>
+    </div>
+  </div>
   <div class="rel-wrap">
     <div class="rel-title">Related</div>
     <div id="relGrid" class="rel-grid"></div>
@@ -1174,20 +1179,10 @@ async function loadHome(){
 }
 
 function adBannerHtml(){
-  var id='adb_'+Math.random().toString(36).substr(2,9);
-  setTimeout(()=>{
-    var el=document.getElementById(id);
-    if(!el)return;
-    var div=document.createElement('div');
-    div.id='container-7918727462c3ee6932174f083d8c6a56';
-    el.appendChild(div);
-    var s=document.createElement('script');
-    s.async=true;
-    s.setAttribute('data-cfasync','false');
-    s.src='https://pl29003901.profitablecpmratenetwork.com/7918727462c3ee6932174f083d8c6a56/invoke.js';
-    el.appendChild(s);
-  },300);
-  return`<div class="ad-banner-home" id="${id}"></div>`;
+  return`<div class="ad-banner-home">
+    <script async="async" data-cfasync="false" src="https://pl29003901.profitablecpmratenetwork.com/7918727462c3ee6932174f083d8c6a56/invoke.js"><\/script>
+    <div id="container-7918727462c3ee6932174f083d8c6a56"></div>
+  </div>`;
 }
 
 function setBannerTMDB(items){
@@ -1222,19 +1217,6 @@ async function openPlayerTMDB(m){
   if(dlBtn)dlBtn.style.display='none';
   const srvWrap=document.querySelector('.server-wrap');
   if(srvWrap)srvWrap.style.display='block';
-  // Player banner inject
-  var slot=document.getElementById('playerAdSlot');
-  if(slot&&!slot.dataset.loaded){
-    slot.dataset.loaded='1';
-    var adDiv=document.createElement('div');
-    adDiv.id='container-7918727462c3ee6932174f083d8c6a56b';
-    slot.appendChild(adDiv);
-    var adS=document.createElement('script');
-    adS.async=true;
-    adS.setAttribute('data-cfasync','false');
-    adS.src='https://pl29003901.profitablecpmratenetwork.com/7918727462c3ee6932174f083d8c6a56/invoke.js';
-    slot.appendChild(adS);
-  }
   document.getElementById('plTitle').textContent=m.title;
   document.getElementById('pHeadTitle').textContent=m.title;
   document.getElementById('plMeta').textContent=`${m.category} • ${m.year}`;
