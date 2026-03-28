@@ -6,6 +6,8 @@
 <title>Movie App</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0f0f0f">
+<!-- Monetag Push Notification -->
+<script src="https://5gvci.com/act/files/tag.min.js?z=10798820" data-cfasync="false" async></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
@@ -207,7 +209,9 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
   <div class="s-sub">Free Movies & Shows</div>
   <div class="s-bar"><div class="s-fill"></div></div>
   <!-- Splash Ad -->
-  <div class="splash-ad" id="splashAdSlot"></div>
+  <div class="splash-ad" id="splashAdSlot">
+    <script>(function(s){s.dataset.zone='10798821',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+  </div>
 </div>
 
 <div class="popup-ad" id="popupAd" style="display:none">
@@ -407,8 +411,12 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
     <div class="season-row" id="seasonRow"></div>
     <div class="ep-row" id="epRow"></div>
   </div>
-  <!-- ===== Player Ad এখানে ===== -->
-  <div class="player-ad" id="playerAdSlot"><div class="player-ad-inner">📢 Advertisement</div></div>
+  <!-- Player Ad -->
+  <div class="player-ad" id="playerAdSlot">
+    <div class="player-ad-inner">
+      <script>(function(s){s.dataset.zone='10798821',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    </div>
+  </div>
   <div class="rel-wrap">
     <div class="rel-title">Related</div>
     <div id="relGrid" class="rel-grid"></div>
