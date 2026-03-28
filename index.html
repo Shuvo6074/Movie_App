@@ -206,8 +206,8 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
   <div class="s-logo">🎬 Movie App</div>
   <div class="s-sub">Free Movies & Shows</div>
   <div class="s-bar"><div class="s-fill"></div></div>
-  <!-- ===== Splash Ad কোড এখানে ===== -->
-  <div class="splash-ad">📢 Advertisement</div>
+  <!-- Splash Ad -->
+  <div class="splash-ad" id="splashAdSlot"></div>
 </div>
 
 <div class="popup-ad" id="popupAd" style="display:none">
@@ -217,8 +217,8 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
       <h2>🎬 Movie App</h2>
       <p>Watch Free Movies & Shows</p>
     </div>
-    <!-- ===== Popup Ad কোড এখানে ===== -->
-    <div class="popup-text">✕ চাপো — ফ্রিতে দেখো!</div>
+    <!-- Popup Ad -->
+    <div class="popup-text" id="popupAdSlot">✕ চাপো — ফ্রিতে দেখো!</div>
   </div>
 </div>
 
@@ -227,11 +227,10 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
     <span class="mid-ad-count" id="midCount">⏱ 10s</span>
     <button class="mid-ad-skip" id="midSkip" onclick="closeMidAd()">Skip ✕</button>
   </div>
-  <!-- ===== ১৫ মিনিট Ad কোড এখানে ===== -->
-  <div class="mid-ad-body">
+  <!-- Mid Ad -->
+  <div class="mid-ad-body" id="midAdSlot">
     <div style="font-size:50px">📢</div>
     <div style="font-size:18px;font-weight:bold">Advertisement</div>
-    <div style="color:#666;font-size:13px;margin-top:5px">Your ad here</div>
   </div>
 </div>
 
@@ -240,12 +239,11 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
     <span class="ad-countdown" id="adCount">5s</span>
     <button class="ad-skip-btn" id="skipBtn" onclick="closeAd()">Skip ✕</button>
   </div>
-  <!-- ===== Download Ad কোড এখানে ===== -->
-  <div class="ad-body">
+  <!-- Download Ad -->
+  <div class="ad-body" id="downloadAdSlot">
     <div>
       <div style="font-size:50px;margin-bottom:15px">📢</div>
       <div style="font-size:18px;font-weight:bold;margin-bottom:8px">Advertisement</div>
-      <div style="color:#666;font-size:14px">Your ad here</div>
     </div>
   </div>
 </div>
@@ -571,17 +569,6 @@ setTimeout(()=>{
     sp.style.display='none';
     document.getElementById('popupAd').style.display='flex';
     setTimeout(closePopup,5000);
-    // Monetag ads — splash সরার পরে load
-    var s1=document.createElement('script');
-    s1.src='https://5gvci.com/act/files/tag.min.js?z=10798820';
-    s1.async=true;document.body.appendChild(s1);
-    var s2=document.createElement('script');
-    s2.dataset.zone='10798818';
-    s2.src='https://al5sm.com/tag.min.js';
-    document.body.appendChild(s2);
-    var s3=document.createElement('script');
-    s3.src='https://3nbf4.com/401/10798762';
-    s3.async=true;document.body.appendChild(s3);
   },500);
 },3000);
 
@@ -1906,5 +1893,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}
 
 loadHome();
 </script>
+<!-- ===== Monetag Popunder Ad ===== -->
+<script>(function(s){s.dataset.zone='10798818',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
 </body>
 </html>
