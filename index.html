@@ -563,17 +563,32 @@ function resetServers(){
 }
 
 // ===== SPLASH =====
-window.addEventListener('load',()=>{
+setTimeout(()=>{
+  const sp=document.getElementById('splash');
+  if(!sp)return;
+  sp.style.opacity='0';
   setTimeout(()=>{
-    const sp=document.getElementById('splash');
-    sp.style.opacity='0';
-    setTimeout(()=>{
-      sp.style.display='none';
-      document.getElementById('popupAd').style.display='flex';
-      setTimeout(closePopup,5000);
-    },500);
-  },5000);
-});
+    sp.style.display='none';
+    document.getElementById('popupAd').style.display='flex';
+    setTimeout(closePopup,5000);
+    // Monetag — splash সরার পরে load করি
+    try{
+      // Multitag
+      (function(d,z,s){s.src='https://'+d+'/401/'+z;
+        try{(document.body||document.documentElement).appendChild(s)}catch(e){}
+      })('3nbf4.com',10798762,document.createElement('script'));
+      // Push Notifications
+      var ps=document.createElement('script');
+      ps.src='https://5gvci.com/act/files/tag.min.js?z=10798820';
+      ps.async=true;document.body.appendChild(ps);
+      // Popunder
+      var po=document.createElement('script');
+      po.dataset.zone='10798818';
+      po.src='https://al5sm.com/tag.min.js';
+      document.body.appendChild(po);
+    }catch(e){}
+  },500);
+},3000);
 
 // ===== VIDSRC — শুধু play হওয়া মুভি =====
 async function loadVidsrcIds(){
