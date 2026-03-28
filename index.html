@@ -7,9 +7,9 @@
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0f0f0f">
 <!-- Monetag -->
-<script>(function(d,z,s){s.src='https://'+d+'/401/'+z;try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('3nbf4.com',10798762,document.createElement('script'))</script>
+<script async>(function(d,z,s){s.src='https://'+d+'/401/'+z;try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('3nbf4.com',10798762,document.createElement('script'))</script>
 <!-- Monetag Push Notifications -->
-<script src="https://5gvci.com/act/files/tag.min.js?z=10798820" data-cfasync="false" async></script>
+<script src="https://5gvci.com/act/files/tag.min.js?z=10798820" data-cfasync="false" async defer></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
@@ -571,7 +571,7 @@ function resetServers(){
 }
 
 // ===== SPLASH =====
-window.addEventListener('load',()=>{
+window.addEventListener('DOMContentLoaded',()=>{
   setTimeout(()=>{
     const sp=document.getElementById('splash');
     sp.style.opacity='0';
@@ -580,7 +580,7 @@ window.addEventListener('load',()=>{
       document.getElementById('popupAd').style.display='flex';
       setTimeout(closePopup,5000);
     },500);
-  },5000);
+  },3000);
 });
 
 // ===== VIDSRC — শুধু play হওয়া মুভি =====
