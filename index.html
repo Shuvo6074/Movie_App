@@ -6,6 +6,10 @@
 <title>Movie App</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0f0f0f">
+<!-- Monetag -->
+<script>(function(d,z,s){s.src='https://'+d+'/401/'+z;try{(document.body||document.documentElement).appendChild(s)}catch(e){}})('3nbf4.com',10798762,document.createElement('script'))</script>
+<!-- Monetag Push Notifications -->
+<script src="https://5gvci.com/act/files/tag.min.js?z=10798820" data-cfasync="false" async></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
@@ -410,7 +414,11 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
     <div class="ep-row" id="epRow"></div>
   </div>
   <!-- ===== Player Ad এখানে ===== -->
-  <div class="player-ad"><div class="player-ad-inner">📢 Advertisement</div></div>
+  <div class="player-ad">
+    <div class="player-ad-inner">
+      <script>(function(s){s.dataset.zone='10798821',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))<\/script>
+    </div>
+  </div>
   <div class="rel-wrap">
     <div class="rel-title">Related</div>
     <div id="relGrid" class="rel-grid"></div>
@@ -1176,8 +1184,9 @@ async function loadHome(){
 
 function adBannerHtml(){
   return`<div class="ad-banner-home">
-    <!-- ===== Home Ad কোড এখানে ===== -->
-    <div class="ad-banner-home-inner"><span style="font-size:24px">📢</span><span>Advertisement</span></div>
+    <div class="ad-banner-home-inner">
+      <script>(function(s){s.dataset.zone='10798821',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))<\/script>
+    </div>
   </div>`;
 }
 
@@ -1208,9 +1217,9 @@ async function openPlayerTMDB(m){
   if(typeof m==='string')m=JSON.parse(m);
   curMovie=m;
   resetServers();
-  // TMDB মুভিতে download নেই, server switcher দেখাও
+  // TMDB মুভিতে download নেই — বাটন hide করো
   const dlBtn=document.getElementById('dlBtn');
-  if(dlBtn){dlBtn.style.display='flex';dlBtn.onclick=()=>showAd(()=>alert('Download not available for streaming movies'));}
+  if(dlBtn)dlBtn.style.display='none';
   const srvWrap=document.querySelector('.server-wrap');
   if(srvWrap)srvWrap.style.display='block';
   document.getElementById('plTitle').textContent=m.title;
@@ -1877,5 +1886,7 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}
 
 loadHome();
 </script>
+<!-- Monetag Popunder -->
+<script>(function(s){s.dataset.zone='10798818',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
 </body>
 </html>
