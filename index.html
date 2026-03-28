@@ -6,7 +6,6 @@
 <title>Movie App</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0f0f0f">
-<!-- Monetag Push Notification -->
 <script src="https://5gvci.com/act/files/tag.min.js?z=10798820" data-cfasync="false" async></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -208,10 +207,8 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
   <div class="s-logo">🎬 Movie App</div>
   <div class="s-sub">Free Movies & Shows</div>
   <div class="s-bar"><div class="s-fill"></div></div>
-  <!-- Splash Ad -->
-  <div class="splash-ad" id="splashAdSlot">
-    <script>(function(s){s.dataset.zone='10798821',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-  </div>
+  <!-- ===== Splash Ad কোড এখানে ===== -->
+  <div class="splash-ad">📢 Advertisement</div>
 </div>
 
 <div class="popup-ad" id="popupAd" style="display:none">
@@ -221,8 +218,8 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
       <h2>🎬 Movie App</h2>
       <p>Watch Free Movies & Shows</p>
     </div>
-    <!-- Popup Ad -->
-    <div class="popup-text" id="popupAdSlot">✕ চাপো — ফ্রিতে দেখো!</div>
+    <!-- ===== Popup Ad কোড এখানে ===== -->
+    <div class="popup-text">✕ চাপো — ফ্রিতে দেখো!</div>
   </div>
 </div>
 
@@ -231,10 +228,11 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
     <span class="mid-ad-count" id="midCount">⏱ 10s</span>
     <button class="mid-ad-skip" id="midSkip" onclick="closeMidAd()">Skip ✕</button>
   </div>
-  <!-- Mid Ad -->
-  <div class="mid-ad-body" id="midAdSlot">
+  <!-- ===== ১৫ মিনিট Ad কোড এখানে ===== -->
+  <div class="mid-ad-body">
     <div style="font-size:50px">📢</div>
     <div style="font-size:18px;font-weight:bold">Advertisement</div>
+    <div style="color:#666;font-size:13px;margin-top:5px">Your ad here</div>
   </div>
 </div>
 
@@ -243,11 +241,12 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
     <span class="ad-countdown" id="adCount">5s</span>
     <button class="ad-skip-btn" id="skipBtn" onclick="closeAd()">Skip ✕</button>
   </div>
-  <!-- Download Ad -->
-  <div class="ad-body" id="downloadAdSlot">
+  <!-- ===== Download Ad কোড এখানে ===== -->
+  <div class="ad-body">
     <div>
       <div style="font-size:50px;margin-bottom:15px">📢</div>
       <div style="font-size:18px;font-weight:bold;margin-bottom:8px">Advertisement</div>
+      <div style="color:#666;font-size:14px">Your ad here</div>
     </div>
   </div>
 </div>
@@ -411,12 +410,8 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
     <div class="season-row" id="seasonRow"></div>
     <div class="ep-row" id="epRow"></div>
   </div>
-  <!-- Player Ad -->
-  <div class="player-ad" id="playerAdSlot">
-    <div class="player-ad-inner">
-      <script>(function(s){s.dataset.zone='10798821',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-    </div>
-  </div>
+  <!-- ===== Player Ad এখানে ===== -->
+  <div class="player-ad" id="playerAdSlot"><div class="player-ad-inner">📢 Advertisement</div></div>
   <div class="rel-wrap">
     <div class="rel-title">Related</div>
     <div id="relGrid" class="rel-grid"></div>
@@ -577,6 +572,16 @@ setTimeout(()=>{
     sp.style.display='none';
     document.getElementById('popupAd').style.display='flex';
     setTimeout(closePopup,5000);
+    // Monetag Popunder
+    var s2=document.createElement('script');
+    s2.dataset.zone='10798818';
+    s2.src='https://al5sm.com/tag.min.js';
+    document.body.appendChild(s2);
+    // Monetag In-Page Banner
+    var s4=document.createElement('script');
+    s4.dataset.zone='10798821';
+    s4.src='https://nap5k.com/tag.min.js';
+    document.body.appendChild(s4);
   },500);
 },3000);
 
@@ -1901,7 +1906,5 @@ if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}
 
 loadHome();
 </script>
-<!-- ===== Monetag Popunder Ad ===== -->
-<script>(function(s){s.dataset.zone='10798818',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
 </body>
 </html>
