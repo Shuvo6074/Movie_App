@@ -411,10 +411,8 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
   </div>
   <!-- ===== Player Ad এখানে ===== -->
   <div class="player-ad" id="playerAdSlot">
-    <div class="player-ad-inner">
-      <script async="async" data-cfasync="false" src="https://pl29003901.profitablecpmratenetwork.com/7918727462c3ee6932174f083d8c6a56/invoke.js"></script>
-      <div id="container-7918727462c3ee6932174f083d8c6a56"></div>
-    </div>
+    <script async="async" data-cfasync="false" src="https://pl29003901.profitablecpmratenetwork.com/7918727462c3ee6932174f083d8c6a56/invoke.js"></script>
+    <div id="container-7918727462c3ee6932174f083d8c6a56"></div>
   </div>
   <div class="rel-wrap">
     <div class="rel-title">Related</div>
@@ -1178,11 +1176,17 @@ async function loadHome(){
   }
 }
 
+var _adsterraLoaded=false;
 function adBannerHtml(){
-  return`<div class="ad-banner-home">
-    <script async="async" data-cfasync="false" src="https://pl29003901.profitablecpmratenetwork.com/7918727462c3ee6932174f083d8c6a56/invoke.js"><\/script>
-    <div id="container-7918727462c3ee6932174f083d8c6a56"></div>
-  </div>`;
+  if(!_adsterraLoaded){
+    _adsterraLoaded=true;
+    var s=document.createElement('script');
+    s.async=true;
+    s.setAttribute('data-cfasync','false');
+    s.src='https://pl29003901.profitablecpmratenetwork.com/7918727462c3ee6932174f083d8c6a56/invoke.js';
+    document.body.appendChild(s);
+  }
+  return`<div class="ad-banner-home"><div class="ad-banner-home-inner"><span style="font-size:24px">📢</span><span>Advertisement</span></div></div>`;
 }
 
 function setBannerTMDB(items){
