@@ -1174,16 +1174,7 @@ async function loadHome(){
 }
 
 function adBannerHtml(){
-  // In-Page Push ad dynamically load করি
-  var id='ad_'+Math.random().toString(36).substr(2,9);
-  setTimeout(()=>{
-    var s=document.createElement('script');
-    s.dataset.zone='10798821';
-    s.src='https://nap5k.com/tag.min.js';
-    var el=document.getElementById(id);
-    if(el)el.appendChild(s);
-  },100);
-  return`<div class="ad-banner-home" id="${id}">
+  return`<div class="ad-banner-home">
     <div class="ad-banner-home-inner"><span style="font-size:24px">📢</span><span>Advertisement</span></div>
   </div>`;
 }
@@ -1220,17 +1211,6 @@ async function openPlayerTMDB(m){
   if(dlBtn)dlBtn.style.display='none';
   const srvWrap=document.querySelector('.server-wrap');
   if(srvWrap)srvWrap.style.display='block';
-  // Player ad slot এ banner load
-  setTimeout(()=>{
-    var slot=document.getElementById('playerAdSlot');
-    if(slot&&!slot.dataset.loaded){
-      slot.dataset.loaded='1';
-      var s=document.createElement('script');
-      s.dataset.zone='10798821';
-      s.src='https://nap5k.com/tag.min.js';
-      slot.appendChild(s);
-    }
-  },1000);
   document.getElementById('plTitle').textContent=m.title;
   document.getElementById('pHeadTitle').textContent=m.title;
   document.getElementById('plMeta').textContent=`${m.category} • ${m.year}`;
@@ -1824,22 +1804,6 @@ function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
   document.getElementById(id).classList.add('show');
   document.querySelectorAll('.n-item').forEach(n=>n.classList.remove('on'));
-  // Player page খুললে banner inject করি
-  if(id==='playerPage'){
-    var slot=document.getElementById('playerAdSlot');
-    if(slot&&!slot.dataset.adLoaded){
-      slot.dataset.adLoaded='1';
-      slot.innerHTML='';
-      var div=document.createElement('div');
-      div.id='container-7918727462c3ee6932174f083d8c6a56';
-      slot.appendChild(div);
-      var s=document.createElement('script');
-      s.async=true;
-      s.setAttribute('data-cfasync','false');
-      s.src='https://pl29003901.profitablecpmratenetwork.com/7918727462c3ee6932174f083d8c6a56/invoke.js';
-      slot.appendChild(s);
-    }
-  }
   if(id==='historyPage'){
     document.getElementById('n-history').classList.add('on');
     const hHtml=hist.length?hist.map(m=>`
