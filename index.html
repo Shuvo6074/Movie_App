@@ -984,10 +984,13 @@ function getVideoUrl(m){
 
 function getDownloadUrl(m){
   const v=m.video||'';
+  // Google Drive
   const gdId=getGdriveId(v);
   if(gdId)return`https://drive.google.com/uc?export=download&id=${gdId}`;
-  if(m.imdb||m.tmdb_id)return null; // streaming only
-  if(v&&!v.includes('youtube')&&!v.includes('youtu.be'))return v;
+  // DriveCloud বা অন্য যেকোনো direct link
+  if(v&&v.startsWith('http')&&!v.includes('youtube')&&!v.includes('youtu.be')&&!v.includes('vidsrc')&&!v.includes('embed'))return v;
+  // Sheet এর মুভি হলে সবসময় download option দেখাব
+  if(m.source==='sheet')return 'sheet_download';
   return null;
 }
 
@@ -1338,25 +1341,31 @@ function openPlayer(m){
   const videoUrl=getVideoUrl(m);
   const dlUrl=getDownloadUrl(m);
 
-  document.getElementById('vFrame').src=videoUrl;
+  // Video আছে কিনা — DriveCloud link হলে iframe এ চলবে না, তাই blank রাখব
+  if(videoUrl){
+    document.getElementById('vFrame').src=videoUrl;
+    document.querySelector('.server-wrap').style.display='none';
+  }else{
+    document.getElementById('vFrame').src='';
+    document.querySelector('.server-wrap').style.display='none';
+  }
+
   document.getElementById('plTitle').textContent=m.title;
   document.getElementById('pHeadTitle').textContent=m.title;
   document.getElementById('plMeta').textContent=`${m.category||''} • ${m.year||''}`;
   document.getElementById('plRating').textContent='';
   document.getElementById('epWrap').style.display='none';
 
-  // Download button — Google Drive হলে সরাসরি download, নইলে hide
+  // Download button — Sheet মুভিতে সবসময় দেখাব
   const dlBtn=document.getElementById('dlBtn');
-  if(dlUrl){
-    dlBtn.style.display='flex';
+  dlBtn.style.display='flex';
+  if(dlUrl&&dlUrl!=='sheet_download'){
+    // Direct download link আছে
     dlBtn.onclick=()=>startDownload(dlUrl);
   }else{
-    dlBtn.style.display='none';
+    // Sheet মুভি কিন্তু direct link নেই — video url দিয়ে চেষ্টা করি
+    dlBtn.onclick=()=>startDownload(videoUrl||null);
   }
-
-  // Server buttons — Google Drive হলে লুকাও (server switch দরকার নেই)
-  const srvWrap=document.querySelector('.server-wrap');
-  if(srvWrap)srvWrap.style.display=dlUrl?'none':'block';
 
   const rel=allSheetData.filter(x=>x.category===m.category&&x.title!==m.title).slice(0,24);
   window._relData=rel;
@@ -1780,8 +1789,8 @@ function renderSheetSection(data,title){renderGrid(data,title,'sheet');}
 function renderTMDBGrid(data,title){renderGrid(data,title,'tmdb');}
 
 function startDownload(dlUrl){
-  if(dlUrl){
-    // Google Drive direct download
+  if(dlUrl&&dlUrl.startsWith('http')){
+    // Google Drive বা DriveCloud বা যেকোনো direct link
     const a=document.createElement('a');
     a.href=dlUrl;
     a.target='_blank';
@@ -1791,16 +1800,13 @@ function startDownload(dlUrl){
     document.body.removeChild(a);
     return;
   }
-  // Streaming মুভি — সব server থেকে source খুঁজি
+  // Streaming — সব server try করি
   if(!curMovie){alert('দয়া করে আগে একটি মুভি প্লে করুন।');return;}
   const dlBtn=document.querySelector('.dl-btn');
   if(dlBtn){dlBtn.innerText='🔍 Searching...';dlBtn.style.background='#555';dlBtn.disabled=true;}
-
   const id=curMovie.tmdb_id||curMovie.imdb||'';
   const type=curMovie.type==='series'?'tv':'movie';
   const s=curSeason||1,e=curEpisode||1;
-
-  // সব server এর URL list
   const sources=[];
   if(type==='tv'){
     sources.push(`https://vidsrc.me/embed/tv?tmdb=${id}&season=${s}&episode=${e}`);
@@ -1811,37 +1817,26 @@ function startDownload(dlUrl){
     sources.push(`https://multiembed.mov/?video_id=${id}&tmdb=1`);
     sources.push(`https://www.2embed.cc/embed/${id}`);
   }
-
-  // বর্তমান iframe src সবার আগে রাখি
   const frame=document.getElementById('vFrame');
   const curSrc=frame?frame.src:'';
-  if(curSrc&&!curSrc.includes('about:blank')){
-    sources.unshift(curSrc);
-  }
-
-  // Unique করি
+  if(curSrc&&!curSrc.includes('about:blank'))sources.unshift(curSrc);
   const unique=[...new Set(sources)];
   let tried=0;
-
   function tryNext(){
     if(tried>=unique.length){
       if(dlBtn){dlBtn.innerText='⬇ Download';dlBtn.style.background='';dlBtn.disabled=false;}
-      alert('কোনো সার্ভারে ডাউনলোড সোর্স পাওয়া যায়নি।\nপরে আবার চেষ্টা করুন।');
+      alert('কোনো সার্ভারে ডাউনলোড সোর্স পাওয়া যায়নি।');
       return;
     }
-    const url=unique[tried];
-    tried++;
-    if(dlBtn)dlBtn.innerText=`🔍 Server ${tried} চেক করছি...`;
+    const url=unique[tried];tried++;
+    if(dlBtn)dlBtn.innerText=`🔍 Server ${tried} চেক...`;
     const newWin=window.open(url,'_blank');
     if(newWin){
       setTimeout(()=>{
         if(dlBtn){dlBtn.innerText='⬇ Download';dlBtn.style.background='';dlBtn.disabled=false;}
-        alert(`✅ Server ${tried} এ পাওয়া গেছে!\n\nনতুন ট্যাবে ভিডিও খুলেছে।\nকিভাবে ডাউনলোড করবেন:\n১. ভিডিও চালু করুন\n২. ভিডিওর উপর ২ সেকেন্ড চেপে ধরুন\n৩. "Download Video" চাপুন`);
+        alert(`✅ Server ${tried} এ পাওয়া গেছে!\n\nনতুন ট্যাবে ভিডিও খুলেছে।\n১. ভিডিও চালু করুন\n২. Long Press করুন\n৩. "Download Video" চাপুন`);
       },1500);
-    }else{
-      // Popup blocked — পরের server try করি
-      setTimeout(tryNext,500);
-    }
+    }else{setTimeout(tryNext,500);}
   }
   tryNext();
 }
