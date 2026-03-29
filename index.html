@@ -984,13 +984,13 @@ function getVideoUrl(m){
 
 function getDownloadUrl(m){
   const v=m.video||'';
-  // Google Drive
+  // Google Drive — id hide করে secure রাখি
   const gdId=getGdriveId(v);
-  if(gdId)return`https://drive.google.com/uc?export=download&id=${gdId}`;
-  // DriveCloud বা অন্য যেকোনো direct link
-  if(v&&v.startsWith('http')&&!v.includes('youtube')&&!v.includes('youtu.be')&&!v.includes('vidsrc')&&!v.includes('embed'))return v;
-  // Sheet এর মুভি হলে সবসময় download option দেখাব
-  if(m.source==='sheet')return 'sheet_download';
+  if(gdId)return`gdrive:${gdId}`;
+  // DriveCloud বা অন্য direct link — hide করি
+  if(v&&v.startsWith('http')&&!v.includes('youtube')&&!v.includes('youtu.be')&&!v.includes('vidsrc')&&!v.includes('embed'))return`direct:${v}`;
+  // Sheet মুভি — download option দেখাব
+  if(m.source==='sheet')return'sheet_download';
   return null;
 }
 
@@ -1789,15 +1789,21 @@ function renderSheetSection(data,title){renderGrid(data,title,'sheet');}
 function renderTMDBGrid(data,title){renderGrid(data,title,'tmdb');}
 
 function startDownload(dlUrl){
+  if(dlUrl&&dlUrl.startsWith('gdrive:')){
+    // Google Drive — secure download, link hide থাকবে
+    const gdId=dlUrl.replace('gdrive:','');
+    const realUrl=`https://drive.google.com/uc?export=download&id=${gdId}`;
+    window.location.href=realUrl;
+    return;
+  }
+  if(dlUrl&&dlUrl.startsWith('direct:')){
+    // DriveCloud বা অন্য direct link
+    const realUrl=dlUrl.replace('direct:','');
+    window.location.href=realUrl;
+    return;
+  }
   if(dlUrl&&dlUrl.startsWith('http')){
-    // Google Drive বা DriveCloud বা যেকোনো direct link
-    const a=document.createElement('a');
-    a.href=dlUrl;
-    a.target='_blank';
-    a.download='';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    window.location.href=dlUrl;
     return;
   }
   // Streaming — সব server try করি
