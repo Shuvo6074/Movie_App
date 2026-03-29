@@ -1208,7 +1208,7 @@ async function openPlayerTMDB(m){
   resetServers();
   // TMDB মুভিতে download বাটন hide
   const dlBtn=document.getElementById('dlBtn');
-  if(dlBtn)dlBtn.style.display='none';
+  if(dlBtn){dlBtn.style.display='flex';dlBtn.onclick=()=>startDownload(null);}
   const srvWrap=document.querySelector('.server-wrap');
   if(srvWrap)srvWrap.style.display='block';
   document.getElementById('plTitle').textContent=m.title;
@@ -1791,8 +1791,59 @@ function startDownload(dlUrl){
     document.body.removeChild(a);
     return;
   }
-  // TMDB/streaming মুভি — ad দেখাই
-  showAd(()=>alert('Download: '+document.getElementById('plTitle').textContent));
+  // Streaming মুভি — সব server থেকে source খুঁজি
+  if(!curMovie){alert('দয়া করে আগে একটি মুভি প্লে করুন।');return;}
+  const dlBtn=document.querySelector('.dl-btn');
+  if(dlBtn){dlBtn.innerText='🔍 Searching...';dlBtn.style.background='#555';dlBtn.disabled=true;}
+
+  const id=curMovie.tmdb_id||curMovie.imdb||'';
+  const type=curMovie.type==='series'?'tv':'movie';
+  const s=curSeason||1,e=curEpisode||1;
+
+  // সব server এর URL list
+  const sources=[];
+  if(type==='tv'){
+    sources.push(`https://vidsrc.me/embed/tv?tmdb=${id}&season=${s}&episode=${e}`);
+    sources.push(`https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}`);
+    sources.push(`https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`);
+  }else{
+    sources.push(`https://vidsrc.me/embed/movie?tmdb=${id}`);
+    sources.push(`https://multiembed.mov/?video_id=${id}&tmdb=1`);
+    sources.push(`https://www.2embed.cc/embed/${id}`);
+  }
+
+  // বর্তমান iframe src সবার আগে রাখি
+  const frame=document.getElementById('vFrame');
+  const curSrc=frame?frame.src:'';
+  if(curSrc&&!curSrc.includes('about:blank')){
+    sources.unshift(curSrc);
+  }
+
+  // Unique করি
+  const unique=[...new Set(sources)];
+  let tried=0;
+
+  function tryNext(){
+    if(tried>=unique.length){
+      if(dlBtn){dlBtn.innerText='⬇ Download';dlBtn.style.background='';dlBtn.disabled=false;}
+      alert('কোনো সার্ভারে ডাউনলোড সোর্স পাওয়া যায়নি।\nপরে আবার চেষ্টা করুন।');
+      return;
+    }
+    const url=unique[tried];
+    tried++;
+    if(dlBtn)dlBtn.innerText=`🔍 Server ${tried} চেক করছি...`;
+    const newWin=window.open(url,'_blank');
+    if(newWin){
+      setTimeout(()=>{
+        if(dlBtn){dlBtn.innerText='⬇ Download';dlBtn.style.background='';dlBtn.disabled=false;}
+        alert(`✅ Server ${tried} এ পাওয়া গেছে!\n\nনতুন ট্যাবে ভিডিও খুলেছে।\nকিভাবে ডাউনলোড করবেন:\n১. ভিডিও চালু করুন\n২. ভিডিওর উপর ২ সেকেন্ড চেপে ধরুন\n৩. "Download Video" চাপুন`);
+      },1500);
+    }else{
+      // Popup blocked — পরের server try করি
+      setTimeout(tryNext,500);
+    }
+  }
+  tryNext();
 }
 function shareMovie(){
   const t=document.getElementById('plTitle').textContent;
