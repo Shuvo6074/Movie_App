@@ -1,11 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Movie App</title>
+<title>Movie App — ফ্রি মুভি ও ভাইরাল ভিডিও</title>
+<meta name="description" content="Movie App — বাংলা, হিন্দি, হলিউড, সাউথ ইন্ডিয়ান সব মুভি ফ্রিতে দেখুন এবং ডাউনলোড করুন। ভাইরাল ভিডিও, ওয়েব সিরিজ, অ্যানিমে সব একসাথে।">
+<meta name="keywords" content="বাংলা মুভি, হিন্দি মুভি, হলিউড মুভি, ফ্রি মুভি ডাউনলোড, ভাইরাল ভিডিও, ওয়েব সিরিজ, movie app, free movies, bangla movie download">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Movie App">
+<meta property="og:title" content="Movie App — ফ্রি মুভি ও ভাইরাল ভিডিও">
+<meta property="og:description" content="বাংলা, হিন্দি, হলিউড সব মুভি ফ্রিতে দেখুন ও ডাউনলোড করুন।">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://movie-app-liard-delta.vercel.app/">
+<meta property="og:image" content="https://movie-app-liard-delta.vercel.app/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="bn_BD">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Movie App — ফ্রি মুভি ও ভাইরাল ভিডিও">
+<meta name="twitter:description" content="বাংলা, হিন্দি, হলিউড সব মুভি ফ্রিতে দেখুন ও ডাউনলোড করুন।">
+<meta name="twitter:image" content="https://movie-app-liard-delta.vercel.app/og-image.jpg">
+<link rel="canonical" href="https://movie-app-liard-delta.vercel.app/">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#0f0f0f">
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Movie App",
+  "url": "https://movie-app-liard-delta.vercel.app/",
+  "description": "বাংলা, হিন্দি, হলিউড, সাউথ ইন্ডিয়ান সব মুভি ফ্রিতে দেখুন এবং ডাউনলোড করুন।",
+  "inLanguage": "bn",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://movie-app-liard-delta.vercel.app/?q={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
@@ -190,6 +226,20 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
 .srv-btn.trying{border-color:#888;color:#aaa;animation:srvpulse 0.7s infinite alternate}
 @keyframes srvpulse{from{opacity:0.4}to{opacity:1}}
 
+/* ===== Viral Video Section ===== */
+.viral-scroll{display:flex;overflow-x:auto;padding:0 15px;gap:10px}
+.viral-scroll::-webkit-scrollbar{display:none}
+.viral-card{min-width:120px;cursor:pointer;flex-shrink:0;position:relative}
+.viral-thumb{width:120px;height:213px;border-radius:10px;object-fit:cover;background:#252525;display:block}
+.viral-title{font-size:11px;margin-top:5px;text-align:center;color:#bbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:120px}
+.viral-badge{position:absolute;top:6px;left:6px;background:#e50914;color:#fff;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold}
+
+/* ===== Viral Page ===== */
+.viral-page-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px 15px 80px}
+.vp-card{cursor:pointer;position:relative;overflow:hidden;border-radius:10px}
+.vp-thumb{width:100%;aspect-ratio:9/16;object-fit:cover;background:#252525;display:block;border-radius:10px}
+.vp-title{font-size:11px;margin-top:5px;text-align:center;color:#bbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
 /* Broken Movies Page */
 .broken-list{padding:15px;padding-bottom:80px}
 .broken-item{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;background:#1a1a1a;border-radius:8px;margin-bottom:8px}
@@ -254,6 +304,7 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
 
 <div class="sidebar" id="sidebar">
   <div class="sidebar-top"><h2>🎬 Movie App</h2></div>
+  <div class="s-item" onclick="showViralPage();closeSidebar()">🔥 ভাইরাল ভিডিও</div>
   <div class="s-item" onclick="goHome();closeSidebar()">🏠 Home</div>
   <div class="s-item" onclick="loadTMDB('movie','popular');closeSidebar()">🎬 Popular Movies</div>
   <div class="s-item" onclick="loadTMDB('movie','top_rated');closeSidebar()">⭐ Top Rated</div>
@@ -308,6 +359,7 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
   </div>
 
   <div class="cat-bar">
+    <button class="cat-btn" onclick="showViralPage();setOn(this)">🔥 ভাইরাল ভিডিও</button>
     <button class="cat-btn on" onclick="filterCat(this,'All')">All</button>
     <button class="cat-btn" onclick="loadTMDBGrid('movie','popular','Hollywood');setOn(this)">Popular</button>
     <button class="cat-btn" onclick="loadTMDBGrid('movie','top_rated','Hollywood');setOn(this)">Top Rated</button>
@@ -359,6 +411,19 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
   <div class="n-item" id="n-download" onclick="showPage('downloadPage')">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
     <span>Downloads</span>
+  </div>
+</div>
+
+<!-- Viral Video Page -->
+<div class="page" id="viralPage">
+  <div class="p-head">
+    <div class="back" onclick="closePage('viralPage')">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    </div>
+    <div class="p-head-title">🔥 ভাইরাল ভিডিও</div>
+  </div>
+  <div class="viral-page-grid" id="viralPageGrid">
+    <div class="loading">Loading...</div>
   </div>
 </div>
 
@@ -835,11 +900,17 @@ async function loadIndian(){
   }
 }
 
-// ===== 18+ Section — Romance/Thriller genre, সব server try করবে =====
+// ===== 18+ Section — Sheet + TMDB merge =====
 async function loadAdult(){
   document.getElementById('contentArea').innerHTML='<div class="loading">Loading...</div>';
   try{
-    // TMDB থেকে Romance + Erotic Thriller genre আনি
+    // Sheet থেকে 18+ মুভি
+    const sheetMovies=allSheetData.filter(d=>{
+      const cats=(d.category||'').split(',').map(c=>c.trim().toLowerCase());
+      return cats.includes('18+');
+    }).map(m=>({...m,source:'sheet',poster:posterUrl(m.poster)}));
+
+    // TMDB থেকে Romance genre
     const [r1,r2,r3,r4,r5]=await Promise.all([
       fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=popularity.desc&include_adult=true&page=1`).then(r=>r.json()),
       fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=popularity.desc&include_adult=true&page=2`).then(r=>r.json()),
@@ -847,7 +918,7 @@ async function loadAdult(){
       fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=vote_average.desc&vote_count.gte=50&include_adult=true&page=1`).then(r=>r.json()),
       fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=revenue.desc&include_adult=true&page=1`).then(r=>r.json()),
     ]);
-    const all=[r1,r2,r3,r4,r5].flatMap(d=>(d.results||[]))
+    const tmdbMovies=[r1,r2,r3,r4,r5].flatMap(d=>(d.results||[]))
       .filter(m=>m.poster_path)
       .filter((m,i,a)=>a.findIndex(x=>x.id===m.id)===i)
       .map(m=>({
@@ -855,10 +926,13 @@ async function loadAdult(){
         backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
         year:(m.release_date||'').substr(0,4),
         rating:m.vote_average?m.vote_average.toFixed(1):'',
-        type:'movie',tmdb_id:m.id,category:'18+'
+        type:'movie',tmdb_id:m.id,category:'18+',source:'tmdb'
       }));
+
+    // Sheet আগে, তারপর TMDB
+    const all=[...sheetMovies,...tmdbMovies];
     if(all.length){
-      renderGrid(all,'🔞 18+ Section','tmdb');
+      renderMixedGrid(all,'🔞 18+ Section');
     }else{
       document.getElementById('contentArea').innerHTML='<div class="loading" style="color:#e50914;padding:40px 20px;text-align:center">18+ content not available at the moment.</div>';
     }
@@ -867,16 +941,22 @@ async function loadAdult(){
   }
 }
 
-// ===== Adult Section — Drama+Romance, সব server try করবে =====
+// ===== Adult Section — Sheet + TMDB merge =====
 async function loadAdultContent(){
   document.getElementById('contentArea').innerHTML='<div class="loading">Loading...</div>';
   try{
+    // Sheet থেকে adult মুভি
+    const sheetMovies=allSheetData.filter(d=>{
+      const cats=(d.category||'').split(',').map(c=>c.trim().toLowerCase());
+      return cats.includes('adult');
+    }).map(m=>({...m,source:'sheet',poster:posterUrl(m.poster)}));
+
     const [r1,r2,r3]=await Promise.all([
       fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=18,10749&sort_by=popularity.desc&include_adult=true&page=1`).then(r=>r.json()),
       fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=18,10749&sort_by=vote_count.desc&include_adult=true&page=1`).then(r=>r.json()),
       fetch(`${TMDB}/discover/movie?api_key=${TMDB_KEY}&with_genres=10749&sort_by=vote_count.desc&include_adult=true&vote_count.gte=100&page=1`).then(r=>r.json()),
     ]);
-    const all=[r1,r2,r3].flatMap(d=>(d.results||[]))
+    const tmdbMovies=[r1,r2,r3].flatMap(d=>(d.results||[]))
       .filter(m=>m.poster_path)
       .filter((m,i,a)=>a.findIndex(x=>x.id===m.id)===i)
       .map(m=>({
@@ -884,10 +964,12 @@ async function loadAdultContent(){
         backdrop:m.backdrop_path?IMG_BIG+m.backdrop_path:'',
         year:(m.release_date||'').substr(0,4),
         rating:m.vote_average?m.vote_average.toFixed(1):'',
-        type:'movie',tmdb_id:m.id,category:'Adult'
+        type:'movie',tmdb_id:m.id,category:'Adult',source:'tmdb'
       }));
+
+    const all=[...sheetMovies,...tmdbMovies];
     if(all.length){
-      renderGrid(all,'🔞 Adult','tmdb');
+      renderMixedGrid(all,'🔞 Adult');
     }else{
       document.getElementById('contentArea').innerHTML='<div class="loading" style="color:#e50914">Adult content not available at the moment.</div>';
     }
@@ -1149,6 +1231,26 @@ async function loadHome(){
       secCount++;if(secCount%6===0)html+=adBannerHtml();
     }
 
+    // ===== ভাইরাল ভিডিও — হোমে শুধু ৫টা =====
+    const viralVideos=allSheetData.filter(d=>d.type==='viral'||(d.category||'').split(',').map(c=>c.trim()).includes('ভাইরাল ভিডিও'));
+    if(viralVideos.length){
+      html+=`<div class="section">
+        <div class="sec-head">
+          <div class="sec-title">🔥 ভাইরাল ভিডিও</div>
+          <div class="sec-all" onclick="showViralPage()">সব ›</div>
+        </div>
+        <div class="viral-scroll">
+          ${viralVideos.slice(0,5).map((m,i)=>`
+            <div class="viral-card" onclick="openPlayer(${esc(m)})">
+              <span class="viral-badge">🔥</span>
+              <img class="viral-thumb" src="${posterUrl(m.poster)}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
+              <div class="viral-title">${m.title}</div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+      html+=adBannerHtml();
+    }
+
     // ===== FOR YOU section — সবার নিচে গ্রিড ভিউ =====
     html+=adBannerHtml();
     const forYouMovies=[...trendMovies,...popMovies,...seriesData].filter((m,i,a)=>a.findIndex(x=>x.tmdb_id===m.tmdb_id)===i).slice(0,30);
@@ -1162,7 +1264,7 @@ async function loadHome(){
       }
       html+=`<div style="cursor:pointer;overflow:hidden" onclick="forYouClick(${i})">
         <div style="width:100%;padding-top:150%;position:relative;border-radius:7px;overflow:hidden;background:#252525">
-          <img style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover" src="${m.poster}" onerror="this.style.background='#333'" loading="lazy" alt="">
+          <img style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover" src="${m.poster}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
         </div>
         <div style="font-size:10px;margin-top:4px;text-align:center;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.title}</div>
       </div>`;
@@ -1218,6 +1320,9 @@ async function openPlayerTMDB(m){
   document.getElementById('pHeadTitle').textContent=m.title;
   document.getElementById('plMeta').textContent=`${m.category} • ${m.year}`;
   document.getElementById('plRating').textContent=m.rating?'⭐ '+m.rating+' / 10':'';
+  document.title=`${m.title} — Movie App`;
+  document.querySelector('meta[property="og:title"]').setAttribute('content',`${m.title} — Movie App`);
+  document.querySelector('meta[name="twitter:title"]').setAttribute('content',`${m.title} — Movie App`);
 
   const vtype=m.type==='series'?'tv':'movie';
   if(m.type==='series'){
@@ -1285,7 +1390,7 @@ async function openPlayerTMDB(m){
         relHtml+=`<div class="rel-ad-wrap" style="grid-column:1/-1">📢 Advertisement</div>`;
       }
       relHtml+=`<div class="r-card" onclick="relClick(${i})">
-        <div class="r-poster"><img src="${rm.poster}" onerror="this.style.background='#333'" loading="lazy" alt=""></div>
+        <div class="r-poster"><img src="${rm.poster}" onerror="this.style.background='#333'" loading="lazy" alt="${rm.title||''}"></div>
         <div class="r-title">${rm.title}</div>
       </div>`;
     });
@@ -1355,6 +1460,9 @@ function openPlayer(m){
   document.getElementById('plMeta').textContent=`${m.category||''} • ${m.year||''}`;
   document.getElementById('plRating').textContent='';
   document.getElementById('epWrap').style.display='none';
+  document.title=`${m.title} — Movie App`;
+  document.querySelector('meta[property="og:title"]').setAttribute('content',`${m.title} — Movie App`);
+  document.querySelector('meta[name="twitter:title"]').setAttribute('content',`${m.title} — Movie App`);
 
   // Download button — Sheet মুভিতে সবসময় দেখাব
   const dlBtn=document.getElementById('dlBtn');
@@ -1376,7 +1484,7 @@ function openPlayer(m){
       relHtml+=`<div class="rel-ad-wrap" style="grid-column:1/-1">📢 Advertisement</div>`;
     }
     relHtml+=`<div class="r-card" onclick="relClick(${i})">
-      <div class="r-poster"><img src="${posterUrl(r.poster)}" onerror="this.style.background='#333'" loading="lazy" alt=""></div>
+      <div class="r-poster"><img src="${posterUrl(r.poster)}" onerror="this.style.background='#333'" loading="lazy" alt="${r.title}"></div>
       <div class="r-title">${r.title}</div>
     </div>`;
   });
@@ -1562,10 +1670,11 @@ async function doSearch(q){
     // Sheet results আগে দেখাই
     let html='';
     if(sheetResults.length){
+      window._sheetSearchResults=sheetResults;
       html+=`<div style="padding:8px 15px 4px;font-size:12px;color:#e50914;font-weight:bold">📁 My Collection</div>
         <div class="search-grid">`;
       sheetResults.forEach((m,i)=>{
-        html+=`<div class="sg-card" onclick="openPlayer(${JSON.stringify(m).replace(/'/g,"&#39;")})">
+        html+=`<div class="sg-card" onclick="sheetSearchClick(${i})">
           <img class="sg-thumb" src="${posterUrl(m.poster)}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
           <div class="sg-title">${m.title}</div>
           <div class="sg-year" style="color:#e50914">⬇ Download</div>
@@ -1609,6 +1718,10 @@ async function doSearch(q){
   }
 }
 
+function sheetSearchClick(idx){
+  const m=window._sheetSearchResults&&window._sheetSearchResults[idx];
+  if(m)openPlayer(m);
+}
 function actorMovieClick(idx){
   const m=window._actorMovies&&window._actorMovies[idx];
   if(m)openPlayerTMDB(m);
@@ -1692,7 +1805,7 @@ function filterCat(btn,cat){
         const img=m.source==='sheet'?posterUrl(m.poster):m.poster;
         html+=`<div style="cursor:pointer;width:100%;overflow:hidden" data-idx="${i}" onclick="mixedGridClick(${i})">
           <div style="width:100%;padding-top:150%;position:relative;border-radius:7px;overflow:hidden;background:#252525">
-            <img style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover" src="${img}" onerror="this.style.background='#333'" loading="lazy" alt="">
+            <img style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover" src="${img}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title||''}">
           </div>
           <div style="font-size:10px;margin-top:4px;text-align:center;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%">${m.title}</div>
         </div>`;
@@ -1740,6 +1853,29 @@ function filterType(type){
 }
 
 // সব জায়গায় গ্রিড — ৩টা করে লাইন, সব সমান সাইজ
+function renderMixedGrid(data,title){
+  if(!data||!data.length){document.getElementById('contentArea').innerHTML='<div class="loading">No content</div>';return;}
+  window._gridData=data;
+  window._gridSource='mixed';
+  let html=`<div style="padding:10px 15px 5px;font-size:15px;font-weight:bold">${title}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:5px 15px 80px;align-items:start">`;
+  data.forEach((m,i)=>{
+    if(i>0&&i%9===0){
+      html+=`</div><div style="margin:8px 15px;border-radius:8px;background:#1a1a1a;border:1px dashed #2a2a2a;height:80px;display:flex;align-items:center;justify-content:center;color:#555;font-size:12px">📢 Advertisement</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 15px;align-items:start">`;
+    }
+    const img=m.source==='sheet'?m.poster:m.poster;
+    html+=`<div style="cursor:pointer;width:100%;overflow:hidden" onclick="mixedGridClick(${i})">
+      <div style="width:100%;padding-top:150%;position:relative;border-radius:7px;overflow:hidden;background:#252525">
+        <img style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover" src="${img}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title||''}">
+      </div>
+      <div style="font-size:10px;margin-top:4px;text-align:center;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%">${m.title}</div>
+    </div>`;
+  });
+  html+='</div>';
+  document.getElementById('contentArea').innerHTML=html;
+}
+
 function renderGrid(data,title,source){
   if(!data||!data.length){document.getElementById('contentArea').innerHTML='<div class="loading">No content</div>';return;}
   // data কে window এ রাখব যাতে onclick এ access করা যায়
@@ -1756,7 +1892,7 @@ function renderGrid(data,title,source){
     const img=source==='sheet'?posterUrl(m.poster):m.poster;
     html+=`<div style="cursor:pointer;width:100%;overflow:hidden" data-idx="${i}" onclick="gridClick(${i})">
       <div style="width:100%;padding-top:150%;position:relative;border-radius:7px;overflow:hidden;background:#252525">
-        <img style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover" src="${img}" onerror="this.style.background='#333'" loading="lazy" alt="">
+        <img style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover" src="${img}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title||''}">
       </div>
       <div style="font-size:10px;margin-top:4px;text-align:center;color:#aaa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%">${m.title}</div>
     </div>`;
@@ -1852,6 +1988,24 @@ function shareMovie(){
   else alert('Share: '+window.location.href);
 }
 
+function showViralPage(){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+  document.getElementById('viralPage').classList.add('show');
+  // সব ভাইরাল ভিডিও দেখাই
+  const viralVideos=allSheetData.filter(d=>
+    d.type==='viral'||(d.category||'').split(',').map(c=>c.trim()).includes('ভাইরাল ভিডিও')
+  );
+  if(!viralVideos.length){
+    document.getElementById('viralPageGrid').innerHTML='<div class="loading" style="grid-column:1/-1">কোনো ভিডিও নেই</div>';
+    return;
+  }
+  document.getElementById('viralPageGrid').innerHTML=viralVideos.map((m,i)=>`
+    <div class="vp-card" onclick="openPlayer(${esc(m)})">
+      <img class="vp-thumb" src="${posterUrl(m.poster)}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
+      <div class="vp-title">${m.title}</div>
+    </div>`).join('');
+}
+
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
   document.getElementById(id).classList.add('show');
@@ -1884,6 +2038,9 @@ function closePage(id){
     document.getElementById('vidWrap').style.filter='';
     clearInterval(midAdTimer);
     resetServers();
+    document.title='Movie App — ফ্রি মুভি ও ভাইরাল ভিডিও';
+    document.querySelector('meta[property="og:title"]').setAttribute('content','Movie App — ফ্রি মুভি ও ভাইরাল ভিডিও');
+    document.querySelector('meta[name="twitter:title"]').setAttribute('content','Movie App — ফ্রি মুভি ও ভাইরাল ভিডিও');
   }
 }
 
