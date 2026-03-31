@@ -634,8 +634,6 @@ setTimeout(()=>{
   sp.style.opacity='0';
   setTimeout(()=>{
     sp.style.display='none';
-    document.getElementById('popupAd').style.display='flex';
-    setTimeout(closePopup,5000);
   },500);
 },3000);
 
@@ -2009,6 +2007,10 @@ function showViralPage(){
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
   document.getElementById(id).classList.add('show');
+  // Push state so back button returns to player instead of reloading
+  if(id==='playerPage'){
+    history.pushState({page:'playerPage'},'','#player');
+  }
   document.querySelectorAll('.n-item').forEach(n=>n.classList.remove('on'));
   if(id==='historyPage'){
     document.getElementById('n-history').classList.add('on');
@@ -2078,6 +2080,21 @@ function closeAd(){
 
 window.addEventListener('scroll',()=>{
   document.getElementById('header').classList.toggle('scrolled',window.scrollY>50);
+});
+
+// Back button — download page থেকে ফিরলে player দেখাও, reload করো না
+window.addEventListener('popstate',(e)=>{
+  if(e.state&&e.state.page==='playerPage'){
+    // player page দেখাও, reload নয়
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+    document.getElementById('playerPage').classList.add('show');
+  } else {
+    // player page বন্ধ করো, home এ থাকো — কিন্তু reload নয়
+    const playerVisible=document.getElementById('playerPage').classList.contains('show');
+    if(playerVisible){
+      closePage('playerPage');
+    }
+  }
 });
 
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}
