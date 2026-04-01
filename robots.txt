@@ -1,0 +1,18 @@
+# Movie App — robots.txt
+# https://movie-app-liard-delta.vercel.app/
+
+User-agent: *
+Allow: /
+
+# Sitemap এর location Google কে বলছি
+Sitemap: https://movie-app-liard-delta.vercel.app/sitemap.xml
+
+# Google Bot
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+# Bing Bot
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 2
