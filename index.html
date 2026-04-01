@@ -226,7 +226,7 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
 .srv-btn.trying{border-color:#888;color:#aaa;animation:srvpulse 0.7s infinite alternate}
 @keyframes srvpulse{from{opacity:0.4}to{opacity:1}}
 
-/* ===== Viral Video Section ===== */
+/* ===== Viral Video Section (হোম) ===== */
 .viral-scroll{display:flex;overflow-x:auto;padding:0 15px;gap:10px}
 .viral-scroll::-webkit-scrollbar{display:none}
 .viral-card{min-width:120px;cursor:pointer;flex-shrink:0;position:relative}
@@ -234,10 +234,18 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
 .viral-title{font-size:11px;margin-top:5px;text-align:center;color:#bbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:120px}
 .viral-badge{position:absolute;top:6px;left:6px;background:#e50914;color:#fff;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:bold}
 
+/* ===== Viral Video — YouTube Thumbnail Style (হোম) ===== */
+.viral-yt-scroll{display:flex;overflow-x:auto;padding:0 15px;gap:12px}
+.viral-yt-scroll::-webkit-scrollbar{display:none}
+.viral-yt-card{min-width:220px;cursor:pointer;flex-shrink:0}
+.viral-yt-thumb-wrap{width:220px;height:124px;border-radius:8px;overflow:hidden;background:#252525}
+.viral-yt-thumb{width:100%;height:100%;object-fit:cover;display:block}
+.viral-yt-title{font-size:12px;font-weight:600;color:#ddd;margin-top:6px;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;width:220px}
+
 /* ===== Viral Page — YouTube Channel Style ===== */
 .viral-page-grid{display:flex;flex-direction:column;gap:0;padding:8px 0 80px}
-.vp-card{cursor:pointer;position:relative;padding:0 0 16px 0;border-bottom:1px solid #1a1a1a}
-.vp-thumb-wrap{width:100%;aspect-ratio:16/9;overflow:hidden;background:#252525;display:block}
+.vp-card{cursor:pointer;padding-bottom:16px;border-bottom:1px solid #1a1a1a}
+.vp-thumb-wrap{width:100%;aspect-ratio:16/9;overflow:hidden;background:#252525}
 .vp-thumb{width:100%;height:100%;object-fit:cover;display:block}
 .vp-info{display:flex;align-items:flex-start;gap:10px;padding:10px 12px 0}
 .vp-avatar{width:36px;height:36px;border-radius:50%;background:#e50914;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px}
@@ -1189,9 +1197,9 @@ async function loadHome(){
     addSec('👻 Horror',horrorMovies,'');
 
     // Sheet custom categories (যেগুলো উপরে নেই)
-    const knownCats=['hollywood','bangla','hindi','bollywood','indian','korean','anime','series','web series','movie'];
+    const knownCats=['hollywood','bangla','hindi','bollywood','indian','korean','anime','series','web series','movie','ভাইরাল ভিডিও','viral'];
     const customCats={};
-    allSheetData.filter(d=>d.type==='movie'||d.type==='series').forEach(m=>{
+    allSheetData.filter(d=>(d.type==='movie'||d.type==='series')&&d.type!=='viral').forEach(m=>{
       (m.category||'').split(',').map(c=>c.trim()).filter(Boolean).forEach(cat=>{
         if(!knownCats.includes(cat.toLowerCase())){
           if(!customCats[cat])customCats[cat]=[];
@@ -1236,7 +1244,7 @@ async function loadHome(){
       secCount++;if(secCount%6===0)html+=adBannerHtml();
     }
 
-    // ===== ভাইরাল ভিডিও — হোমে শুধু ৫টা =====
+    // ===== ভাইরাল ভিডিও — হোমে YouTube থাম্বনেল স্টাইল =====
     const viralVideos=allSheetData.filter(d=>d.type==='viral'||(d.category||'').split(',').map(c=>c.trim()).includes('ভাইরাল ভিডিও'));
     if(viralVideos.length){
       html+=`<div class="section">
@@ -1244,12 +1252,13 @@ async function loadHome(){
           <div class="sec-title">🔥 ভাইরাল ভিডিও</div>
           <div class="sec-all" onclick="showViralPage()">সব ›</div>
         </div>
-        <div class="viral-scroll">
-          ${viralVideos.slice(0,5).map((m,i)=>`
-            <div class="viral-card" onclick="openPlayer(${esc(m)})">
-              <span class="viral-badge">🔥</span>
-              <img class="viral-thumb" src="${posterUrl(m.poster)}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
-              <div class="viral-title">${m.title}</div>
+        <div class="viral-yt-scroll">
+          ${viralVideos.slice(0,8).map((m)=>`
+            <div class="viral-yt-card" onclick="openPlayer(${esc(m)})">
+              <div class="viral-yt-thumb-wrap">
+                <img class="viral-yt-thumb" src="${posterUrl(m.poster)}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
+              </div>
+              <div class="viral-yt-title">${m.title}</div>
             </div>`).join('')}
         </div>
       </div>`;
@@ -2004,7 +2013,7 @@ function showViralPage(){
     document.getElementById('viralPageGrid').innerHTML='<div class="loading" style="grid-column:1/-1">কোনো ভিডিও নেই</div>';
     return;
   }
-  document.getElementById('viralPageGrid').innerHTML=viralVideos.map((m,i)=>`
+  document.getElementById('viralPageGrid').innerHTML=viralVideos.map((m)=>`
     <div class="vp-card" onclick="openPlayer(${esc(m)})">
       <div class="vp-thumb-wrap">
         <img class="vp-thumb" src="${posterUrl(m.poster)}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
