@@ -1324,9 +1324,9 @@ async function loadHome(){
     addSec('👻 Horror',horrorMovies,'');
 
     // Sheet custom categories (যেগুলো উপরে নেই)
-    const knownCats=['hollywood','bangla','hindi','bollywood','indian','korean','anime','series','web series','movie'];
+    const knownCats=['hollywood','bangla','hindi','bollywood','indian','korean','anime','series','web series','movie','ভাইরাল ভিডিও','viral'];
     const customCats={};
-    allSheetData.filter(d=>d.type==='movie'||d.type==='series').forEach(m=>{
+    allSheetData.filter(d=>(d.type==='movie'||d.type==='series')&&d.type!=='viral').forEach(m=>{
       (m.category||'').split(',').map(c=>c.trim()).filter(Boolean).forEach(cat=>{
         if(!knownCats.includes(cat.toLowerCase())){
           if(!customCats[cat])customCats[cat]=[];
@@ -1369,26 +1369,6 @@ async function loadHome(){
             <div class="w-title">${m.title}</div>
           </div>`).join('')}</div></div>`;
       secCount++;if(secCount%6===0)html+=adBannerHtml();
-    }
-
-    // ===== ভাইরাল ভিডিও — হোমে শুধু ৫টা =====
-    const viralVideos=allSheetData.filter(d=>d.type==='viral'||(d.category||'').split(',').map(c=>c.trim()).includes('ভাইরাল ভিডিও'));
-    if(viralVideos.length){
-      html+=`<div class="section">
-        <div class="sec-head">
-          <div class="sec-title">🔥 ভাইরাল ভিডিও</div>
-          <div class="sec-all" onclick="showViralPage()">সব ›</div>
-        </div>
-        <div class="viral-scroll">
-          ${viralVideos.slice(0,5).map((m,i)=>`
-            <div class="viral-card" onclick="openPlayer(${esc(m)})">
-              <span class="viral-badge">🔥</span>
-              <img class="viral-thumb" src="${posterUrl(m.poster)}" onerror="this.style.background='#333'" loading="lazy" alt="${m.title}">
-              <div class="viral-title">${m.title}</div>
-            </div>`).join('')}
-        </div>
-      </div>`;
-      html+=adBannerHtml();
     }
 
     // ===== FOR YOU section — সবার নিচে গ্রিড ভিউ =====
