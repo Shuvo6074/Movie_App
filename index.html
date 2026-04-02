@@ -351,14 +351,13 @@ body{background:#0f0f0f;color:#fff;font-family:Arial;overflow-x:hidden}
   <div class="splash-ad">📢 Advertisement</div>
 </div>
 
-<div class="popup-ad" id="popupAd" style="display:none">
+<div class="popup-ad" id="popupAd" style="display:none!important;visibility:hidden!important;pointer-events:none!important">
   <div class="popup-box">
     <button class="popup-close" onclick="closePopup()">✕</button>
     <div class="popup-inner">
       <h2>🎬 Movie App</h2>
       <p>Watch Free Movies & Shows</p>
     </div>
-    <!-- ===== Popup Ad কোড এখানে ===== -->
     <div class="popup-text">✕ চাপো — ফ্রিতে দেখো!</div>
   </div>
 </div>
@@ -723,9 +722,7 @@ setTimeout(()=>{
   const sp=document.getElementById('splash');
   if(!sp)return;
   sp.style.opacity='0';
-  setTimeout(()=>{
-    sp.style.display='none';
-  },500);
+  setTimeout(()=>{sp.style.display='none';},500);
 },3000);
 
 // ===== VIDSRC — শুধু play হওয়া মুভি =====
