@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebTorrent Player Test</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/webtorrent/2.1.36/webtorrent.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0f;
+    color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  h2 {
+    text-align: center;
+    color: #00e5ff;
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+  }
+  #video-container {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    background: #111;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #222;
+  }
+  video {
+    width: 100%;
+    display: block;
+    background: #000;
+  }
+  #status {
+    text-align: center;
+    padding: 16px;
+    color: #aaa;
+    font-size: 0.9rem;
+  }
+  #progress-bar-wrap {
+    background: #1a1a2e;
+    height: 6px;
+    border-radius: 3px;
+    margin: 0 16px 12px;
+    overflow: hidden;
+  }
+  #progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #00e5ff, #7c4dff);
+    width: 0%;
+    transition: width 0.3s;
+    border-radius: 3px;
+  }
+  #stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 16px 16px;
+    font-size: 0.8rem;
+    color: #888;
+  }
+  #stats span { color: #00e5ff; font-weight: bold; }
+  #error {
+    color: #ff5252;
+    text-align: center;
+    padding: 20px;
+    display: none;
+  }
+  #start-btn {
+    display: block;
+    margin: 20px auto;
+    background: linear-gradient(135deg, #00e5ff, #7c4dff);
+    color: #fff;
+    border: none;
+    padding: 14px 36px;
+    border-radius: 30px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  #start-btn:active { opacity: 0.8; }
+</style>
+</head>
+<body>
+
+<h2>🎬 WebTorrent Player Test</h2>
+
+<div id="video-container">
+  <video id="video" controls autoplay></video>
+  <div id="status">▶ Start করতে নিচের বাটনে ক্লিক করো</div>
+  <div id="progress-bar-wrap">
+    <div id="progress-bar"></div>
+  </div>
+  <div id="stats">
+    <div>⬇ Download: <span id="down">0 KB/s</span></div>
+    <div>⬆ Upload: <span id="up">0 KB/s</span></div>
+    <div>👥 Peers: <span id="peers">0</span></div>
+    <div>📦 Progress: <span id="prog">0%</span></div>
+  </div>
+  <div id="error"></div>
+</div>
+
+<button id="start-btn" onclick="startTorrent()">▶ Play / Download শুরু করো</button>
+
+<script>
+const MAGNET = "magnet:?xt=urn:btih:D78790D6F74BA78AC3458993994EA92F64B5E738&dn=Swapped%20(2026)%20%5B1080p%5D%20%5BWEBRip%5D%20%5B5.1%5D%20&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=udp%3A%2F%2Fmovies.zsw.ca%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.dler.org%3A6969%2Fannounce&tr=udp%3A%2F%2Fopentracker.i2p.rocks%3A6969%2Fannounce&tr=udp%3A%2F%2Fopen.stealth.si%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.0x.tf%3A6969%2Fannounce";
+
+function fmt(bytes) {
+  if (bytes < 1024) return bytes + ' B/s';
+  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB/s';
+  return (bytes/1048576).toFixed(1) + ' MB/s';
+}
+
+function startTorrent() {
+  document.getElementById('start-btn').style.display = 'none';
+  document.getElementById('status').textContent = '⏳ Connecting to peers...';
+
+  const client = new WebTorrent();
+
+  client.on('error', function(err) {
+    document.getElementById('error').style.display = 'block';
+    document.getElementById('error').textContent = '❌ Error: ' + err.message;
+    document.getElementById('status').textContent = 'Failed';
+  });
+
+  client.add(MAGNET, function(torrent) {
+    document.getElementById('status').textContent = '✅ Connected! Loading video...';
+
+    // সবচেয়ে বড় file (video file) খোঁজো
+    const file = torrent.files.reduce((a, b) => a.length > b.length ? a : b);
+
+    file.renderTo('#video', function(err) {
+      if (err) {
+        document.getElementById('error').style.display = 'block';
+        document.getElementById('error').textContent = '❌ Video load failed: ' + err.message;
+      } else {
+        document.getElementById('status').textContent = '🎬 Playing: ' + file.name;
+      }
+    });
+
+    // Stats update
+    setInterval(function() {
+      document.getElementById('down').textContent = fmt(torrent.downloadSpeed);
+      document.getElementById('up').textContent = fmt(torrent.uploadSpeed);
+      document.getElementById('peers').textContent = torrent.numPeers;
+      const p = (torrent.progress * 100).toFixed(1);
+      document.getElementById('prog').textContent = p + '%';
+      document.getElementById('progress-bar').style.width = p + '%';
+    }, 1000);
+  });
+}
+</script>
+
+</body>
+</html>
