@@ -7,107 +7,26 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/webtorrent/2.1.36/webtorrent.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: #0a0a0f;
-    color: #fff;
-    font-family: 'Segoe UI', sans-serif;
-    min-height: 100vh;
-    padding: 20px;
-  }
-  h2 {
-    text-align: center;
-    color: #00e5ff;
-    margin-bottom: 20px;
-    font-size: 1.4rem;
-  }
-  #video-container {
-    width: 100%;
-    max-width: 700px;
-    margin: 0 auto;
-    background: #111;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid #222;
-  }
-  video {
-    width: 100%;
-    display: block;
-    background: #000;
-    min-height: 200px;
-  }
-  #status {
-    text-align: center;
-    padding: 16px;
-    color: #aaa;
-    font-size: 0.9rem;
-  }
-  #progress-bar-wrap {
-    background: #1a1a2e;
-    height: 6px;
-    border-radius: 3px;
-    margin: 0 16px 12px;
-    overflow: hidden;
-  }
-  #progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, #00e5ff, #7c4dff);
-    width: 0%;
-    transition: width 0.3s;
-    border-radius: 3px;
-  }
-  #stats {
-    display: flex;
-    justify-content: space-around;
-    padding: 10px 16px 16px;
-    font-size: 0.8rem;
-    color: #888;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
+  body { background: #0a0a0f; color: #fff; font-family: 'Segoe UI', sans-serif; min-height: 100vh; padding: 20px; }
+  h2 { text-align: center; color: #00e5ff; margin-bottom: 20px; font-size: 1.4rem; }
+  #video-container { width: 100%; max-width: 700px; margin: 0 auto; background: #111; border-radius: 12px; overflow: hidden; border: 1px solid #222; }
+  video { width: 100%; display: block; background: #000; min-height: 200px; }
+  #status { text-align: center; padding: 16px; color: #aaa; font-size: 0.9rem; }
+  #progress-bar-wrap { background: #1a1a2e; height: 6px; border-radius: 3px; margin: 0 16px 12px; overflow: hidden; }
+  #progress-bar { height: 100%; background: linear-gradient(90deg, #00e5ff, #7c4dff); width: 0%; transition: width 0.3s; border-radius: 3px; }
+  #stats { display: flex; justify-content: space-around; padding: 10px 16px 16px; font-size: 0.8rem; color: #888; flex-wrap: wrap; gap: 8px; }
   #stats span { color: #00e5ff; font-weight: bold; }
-  #error {
-    color: #ff5252;
-    text-align: center;
-    padding: 20px;
-    font-size: 0.85rem;
-    display: none;
-  }
-  #start-btn {
-    display: block;
-    margin: 20px auto;
-    background: linear-gradient(135deg, #00e5ff, #7c4dff);
-    color: #fff;
-    border: none;
-    padding: 14px 36px;
-    border-radius: 30px;
-    font-size: 1rem;
-    cursor: pointer;
-    font-weight: bold;
-    letter-spacing: 1px;
-  }
-  #log {
-    max-width: 700px;
-    margin: 10px auto;
-    background: #111;
-    border-radius: 8px;
-    padding: 10px;
-    font-size: 0.75rem;
-    color: #888;
-    max-height: 120px;
-    overflow-y: auto;
-  }
+  #error { color: #ff5252; text-align: center; padding: 20px; font-size: 0.85rem; display: none; }
+  #start-btn { display: block; margin: 20px auto; background: linear-gradient(135deg, #00e5ff, #7c4dff); color: #fff; border: none; padding: 14px 36px; border-radius: 30px; font-size: 1rem; cursor: pointer; font-weight: bold; }
+  #log { max-width: 700px; margin: 10px auto; background: #111; border-radius: 8px; padding: 10px; font-size: 0.75rem; color: #888; max-height: 150px; overflow-y: auto; }
 </style>
 </head>
 <body>
-
-<h2>🎬 WebTorrent Player Test</h2>
-
+<h2>🎬 WebTorrent Player Test v2</h2>
 <div id="video-container">
   <video id="video" controls autoplay playsinline></video>
   <div id="status">▶ Start করতে নিচের বাটনে ক্লিক করো</div>
-  <div id="progress-bar-wrap">
-    <div id="progress-bar"></div>
-  </div>
+  <div id="progress-bar-wrap"><div id="progress-bar"></div></div>
   <div id="stats">
     <div>⬇ Download: <span id="down">0 KB/s</span></div>
     <div>⬆ Upload: <span id="up">0 KB/s</span></div>
@@ -116,23 +35,20 @@
   </div>
   <div id="error"></div>
 </div>
-
 <button id="start-btn" onclick="startTorrent()">▶ Play / Download শুরু করো</button>
-
 <div id="log"></div>
 
 <script>
-// WebSocket trackers — browser support করে
 const WS_TRACKERS = [
   'wss://tracker.btorrent.xyz',
   'wss://tracker.openwebtorrent.com',
   'wss://tracker.webtorrent.dev',
-  'wss://tracker.files.fm:7073/announce',
-  'wss://spacetradersapi-chatgpt.herokuapp.com:443/announce'
+  'wss://tracker.files.fm:7073/announce'
 ];
 
-const MAGNET = "magnet:?xt=urn:btih:D78790D6F74BA78AC3458993994EA92F64B5E738&dn=Swapped%20(2026)%20%5B1080p%5D%20%5BWEBRip%5D%20%5B5.1%5D&" + 
-  WS_TRACKERS.map(t => "tr=" + encodeURIComponent(t)).join("&");
+const HASH = 'D78790D6F74BA78AC3458993994EA92F64B5E738';
+const NAME = 'Swapped (2026) [1080p] [WEBRip] [5.1]';
+const MAGNET = 'magnet:?xt=urn:btih:' + HASH + '&dn=' + encodeURIComponent(NAME) + '&' + WS_TRACKERS.map(t => 'tr=' + encodeURIComponent(t)).join('&');
 
 function log(msg) {
   const d = document.getElementById('log');
@@ -149,30 +65,22 @@ function fmt(bytes) {
 function startTorrent() {
   document.getElementById('start-btn').style.display = 'none';
   document.getElementById('status').textContent = '⏳ Connecting to peers...';
-  log('WebTorrent client শুরু হচ্ছে...');
+  log('WebTorrent শুরু হচ্ছে...');
 
   const client = new WebTorrent();
 
   client.on('error', function(err) {
     document.getElementById('error').style.display = 'block';
-    document.getElementById('error').textContent = '❌ Client Error: ' + err.message;
+    document.getElementById('error').textContent = '❌ Error: ' + err.message;
     log('ERROR: ' + err.message);
   });
 
-  log('Magnet link add করা হচ্ছে...');
-  log('Trackers: ' + WS_TRACKERS.join(', '));
-
   client.add(MAGNET, { announce: WS_TRACKERS }, function(torrent) {
-    log('Torrent found: ' + torrent.name);
-    log('Files: ' + torrent.files.length);
-    
-    torrent.files.forEach(f => log('File: ' + f.name + ' (' + (f.length/1024/1024).toFixed(1) + ' MB)'));
+    log('Torrent: ' + torrent.name);
+    torrent.files.forEach(f => log('📄 ' + f.name + ' (' + (f.length/1024/1024).toFixed(1) + ' MB)'));
 
-    // সবচেয়ে বড় file = video file
     const file = torrent.files.reduce((a, b) => a.length > b.length ? a : b);
-    log('Playing: ' + file.name);
-
-    document.getElementById('status').textContent = '✅ Connected! Loading: ' + file.name;
+    document.getElementById('status').textContent = '✅ Loading: ' + file.name;
 
     file.renderTo('#video', function(err) {
       if (err) {
@@ -180,14 +88,12 @@ function startTorrent() {
         document.getElementById('error').textContent = '❌ Video Error: ' + err.message;
         log('Video ERROR: ' + err.message);
       } else {
-        document.getElementById('status').textContent = '🎬 Playing: ' + file.name;
-        log('Video render সফল!');
+        document.getElementById('status').textContent = '🎬 Playing!';
+        log('✅ Video চলছে!');
       }
     });
 
-    torrent.on('wire', function(wire) {
-      log('New peer connected: ' + wire.remoteAddress);
-    });
+    torrent.on('wire', w => log('🔗 Peer connected: ' + (w.remoteAddress || 'unknown')));
 
     setInterval(function() {
       document.getElementById('down').textContent = fmt(torrent.downloadSpeed);
@@ -200,6 +106,5 @@ function startTorrent() {
   });
 }
 </script>
-
 </body>
 </html>
